@@ -27,6 +27,8 @@ final class SceneRouter {
         if raw == "achievements" { return .achievements }
         if raw == "parentGate" { return .parentGate }
         if raw == "parentDashboard" { return .parentDashboard }
+        if raw == "welcome" { return .welcome }
+        if raw == "parentPrimer" { return .parentPrimer }
         if raw.hasPrefix("map:") {
             let area = String(raw.dropFirst(4))
             // Accept both PascalCase ("Math") and lower-case ("math") inputs.
@@ -70,6 +72,8 @@ final class SceneRouter {
     func goParentGate() { go(.parentGate) }
     func goParent() { go(.parentDashboard) }
     func goAchievements() { go(.achievements) }
+    func goWelcome() { go(.welcome) }
+    func goParentPrimer() { go(.parentPrimer) }
 
     enum Route: Equatable {
         case menu
@@ -80,6 +84,9 @@ final class SceneRouter {
         case parentGate
         case parentDashboard
         case achievements
+        // Onboarding flow (S1-01..02)
+        case welcome           // first-launch greeting
+        case parentPrimer      // post-M01 parent setup primer
     }
 }
 

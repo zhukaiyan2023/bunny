@@ -166,6 +166,77 @@ func progressStoreTests(into runner: TestRunner) {
         return XCTestCase.XCTAssertTrue(notificationCount >= 1,
                                          "complete() should emit progressStoreDidChange (\(notificationCount))")
     }
+
+    // S1-04 — Onboarding flag tests
+
+    runner.add("onboardingComplete_falseForFreshStore") {
+        let store = isolatedStore()
+        return XCTestCase.XCTAssertTrue(!store.onboardingComplete,
+                                         "fresh store must report onboarding not complete")
+    }
+
+    runner.add("onboardingComplete_trueAfterFirstCompletion") {
+        let store = isolatedStore()
+        store.complete(Curriculum.fallback[0], stars: 3)
+        return XCTestCase.XCTAssertTrue(store.onboardingComplete,
+                                         "first complete() should set onboardingComplete=true")
+    }
+
+    // S1-03 — resetAllProgress tests
+
+    runner.add("resetAllProgress_clearsStars") {
+        let store = isolatedStore()
+        store.complete(Curriculum.fallback[0], stars: 3)
+        store.resetAllProgress()
+        return XCTestCase.XCTAssertNil(store.stars[Curriculum.fallback[0].id],
+                                        "reset should clear stars for the level")
+    }
+
+    runner.add("resetAllProgress_clearsCompleted") {
+        let store = isolatedStore()
+        store.complete(Curriculum.fallback[0], stars: 3)
+        store.resetAllProgress()
+        return XCTestCase.XCTAssertTrue(store.completed.isEmpty,
+                                         "reset should clear completed set")
+    }
+
+    runner.add("resetAllProgress_clearsOnboardingFlag") {
+        let store = isolatedStore()
+        store.complete(Curriculum.fallback[0], stars: 3)
+        guard store.onboardingComplete else {
+            return .fail("precondition: onboarding should be true after complete")
+        }
+        store.resetAllProgress()
+        return XCTestCase.XCTAssertTrue(!store.onboardingComplete,
+                                         "reset should flip onboarding back to false")
+    }
+
+    runner.add("resetAllProgress_clearsLastPlayed") {
+        let store = isolatedStore()
+        store.complete(Curriculum.fallback[0], stars: 3)
+        store.resetAllProgress()
+        return XCTestCase.XCTAssertNil(store.lastPlayedLevelID,
+                                        "reset should clear lastPlayedLevelID")
+    }
+
+    runner.add("resetAllProgress_clearsFamilyPractice") {
+        let store = isolatedStore()
+        store.setFamilyPractice("L01", completed: true)
+        store.resetAllProgress()
+        return XCTestCase.XCTAssertEqual(store.familyPractice.count, 0,
+                                          "reset should clear familyPractice set")
+    }
+
+    runner.add("resetAllProgress_persistsViaUserDefaults") {
+        let suiteName = "reset-persist-\(UUID().uuidString)"
+        let store = sharedStore(suiteName: suiteName)
+        store.complete(Curriculum.fallback[0], stars: 3)
+        store.resetAllProgress()
+        // Re-open the store from the same suite — reset must persist.
+        let reloaded = sharedStore(suiteName: suiteName)
+        return XCTestCase.XCTAssertTrue(!reloaded.onboardingComplete,
+                                         "reset must persist: reloaded store should be fresh")
+    }
 }
 
 /// Returns a fresh ProgressStore backed by a one-shot isolated UserDefaults

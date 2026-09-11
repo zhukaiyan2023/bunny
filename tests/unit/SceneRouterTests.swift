@@ -132,4 +132,43 @@ func sceneRouterTests(into runner: TestRunner) {
         }
         return .pass
     }
+
+    // S1-02 — Onboarding route tests
+
+    runner.add("goWelcome_routesCorrectly") {
+        let router = SceneRouter.shared
+        let original = router.route
+        defer { router.go(original) }
+
+        router.goWelcome()
+        return XCTestCase.XCTAssertEqual(router.route, .welcome,
+                                          "goWelcome should set .welcome")
+    }
+
+    runner.add("goParentPrimer_routesCorrectly") {
+        let router = SceneRouter.shared
+        let original = router.route
+        defer { router.go(original) }
+
+        router.goParentPrimer()
+        return XCTestCase.XCTAssertEqual(router.route, .parentPrimer,
+                                          "goParentPrimer should set .parentPrimer")
+    }
+
+    runner.add("welcome_routeIsDistinctFromMenu") {
+        let router = SceneRouter.shared
+        let original = router.route
+        defer { router.go(original) }
+
+        router.go(.welcome)
+        // Switching from welcome to menu should fire a notification.
+        var fired = 0
+        let token = NotificationCenter.default.addObserver(
+            forName: .sceneRouterDidChange, object: nil, queue: nil
+        ) { _ in fired += 1 }
+        defer { NotificationCenter.default.removeObserver(token) }
+        router.go(.menu)
+        return XCTestCase.XCTAssertTrue(fired >= 1,
+                                         "switching welcome→menu should fire notification")
+    }
 }

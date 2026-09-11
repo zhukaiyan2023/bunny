@@ -98,6 +98,32 @@ final class ProgressStore {
         return completed.contains(orderedLevels[index - 1].id)
     }
 
+    /// Wipes all persisted state and re-bootstraps an empty store.
+    /// Used by the parent dashboard "Reset Progress" action. Also clears
+    /// the onboarding flag, so the next launch will run Welcome + Parent
+    /// Primer again (S1-03).
+    func resetAllProgress() {
+        for key in defaults.dictionaryRepresentation().keys
+        where key.hasPrefix("brightsprout.") {
+            defaults.removeObject(forKey: key)
+        }
+        completed = []
+        stars = [:]
+        attempts = [:]
+        scenePractices = []
+        familyPractice = []
+        lastPlayedLevelID = nil
+        lastPlayedAt = nil
+        didBootstrap = false
+        bootstrap()
+    }
+
+    /// True once the child has completed at least one level. Drives the
+    /// first-run routing decision in S1-01 (welcome scene) vs the main
+    /// menu. Pillar 3 (Persistence): never lossy — we only flip this to
+    /// `true`, never back, except via `resetAllProgress()`.
+    var onboardingComplete: Bool { !completed.isEmpty }
+
     var totalStars: Int { stars.values.reduce(0, +) }
     var totalAttempts: Int { attempts.values.reduce(0, +) }
 
