@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate-levels:
+    name: Validate levels.json
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run validator
+        run: python3 tools/validate_levels_json.py
+
+  lint:
+    name: Forbidden-patterns lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run lint
+        run: python3 tools/lint_forbidden_patterns.py
+
+  build:
+    name: Build (${{ matrix.target }})
+    runs-on: macos-14
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - "bunny iOS"
+          - "bunny macOS"
+        # bunny tvOS excluded: requires tvOS SDK which is not always
+        # installed on the runner. Re-enable when the build environment
+        # has the tvOS SDK.
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Select Xcode
+        run: |
+          # Pick the highest Xcode version available on the runner.
+          ls -d /Applications/Xcode_*.app | sort -V | tail -1 | xargs -I{} sudo xcode-select -s {}
+
+      - name: Cache DerivedData
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData
+          key: ${{ runner.os }}-deriveddata-${{ matrix.target }}-${{ hashFiles('bunny.xcodeproj/project.pbxproj') }}
+          restore-keys: |
+            ${{ runner.os }}-deriveddata-${{ matrix.target }}-
+
+      - name: Build ${{ matrix.target }}
+        run: |
+          if [ "${{ matrix.target }}" = "bunny iOS" ]; then
+            DESTINATION="generic/platform=iOS Simulator"
+          else
+            DESTINATION="generic/platform=macOS"
+          fi
+          xcodebuild \
+            -project bunny.xcodeproj \
+            -scheme "${{ matrix.target }}" \
+            -destination "$DESTINATION" \
+            -configuration Debug \
+            -quiet \
+            CODE_SIGNING_ALLOWED=NO \
+            build
