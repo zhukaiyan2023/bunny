@@ -1,0 +1,73 @@
+# Local tool state (NOT part of the project)
+.claude/
+.dsh/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+*.xcuserdatad/
+xcuserdata/
+*.moved-aside
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+*.xccheckout
+*.xcscmblueprint
+
+# Swift Package Manager
+.swiftpm/
+.build/
+Packages/
+Package.pins
+Package.resolved
+*.xcodeproj/project.xcworkspace/xcuserdata/
+
+# CocoaPods (not used — ADR-0007)
+Pods/
+
+# Carthage (not used — ADR-0007)
+Carthage/Build/
+
+# CI
+*.log
+coverage/
+
+# Planning artifacts (ephemeral)
+production/session-state/
+production/session-logs/
+
+# Personal Claude overrides
+CLAUDE.local.md
+
+# IDE
+.vscode/
+.idea/
+
+# Local-only notes
+*.local.md
+*.swp
+*.bak
