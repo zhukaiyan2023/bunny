@@ -29,6 +29,24 @@ final class MenuScene: SKScene {
         continueCard.removeFromParent()
         areaStack.removeFromParent()
         starTallyContainer.removeFromParent()
+
+        // Ambient: sky → cream → grass gradient with floating dust motes.
+        SKAmbient.install(in: self, config: SKAmbient.Configuration(
+            particleCount: 36,
+            palette: [
+                UIColor.white.withAlphaComponent(0.85),
+                SKTheme.yellow.withAlphaComponent(0.55),
+                SKTheme.pink.withAlphaComponent(0.45),
+                SKTheme.green.withAlphaComponent(0.30),
+            ],
+            backgroundGradient: [
+                UIColor(red: 0.82, green: 0.90, blue: 0.99, alpha: 1.0),
+                SKTheme.cream,
+                SKTheme.green.withAlphaComponent(0.30),
+            ],
+            driftSpeed: 7
+        ))
+
         buildBackground()
         buildHeader()
         buildContinueCard()
@@ -39,6 +57,7 @@ final class MenuScene: SKScene {
         ) { [weak self] _ in self?.refreshProgress() }
         refreshProgress()
         SpeechService.shared.speak("Hello! Pick a world to explore.")
+        Feedback.shared.tap()
     }
 
     deinit { if let observation { NotificationCenter.default.removeObserver(observation) } }

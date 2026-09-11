@@ -109,7 +109,11 @@ final class SKButton: SKNode {
         let tapped = background.contains(point)
         isPressed = false
         run(.scale(to: 1, duration: 0.18))
-        if tapped, isEnabled { action() }
+        if tapped, isEnabled {
+            // Soft tap feedback on every button release.
+            Feedback.shared.tap()
+            action()
+        }
     }
 
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {

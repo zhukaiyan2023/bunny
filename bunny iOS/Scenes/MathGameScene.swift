@@ -48,6 +48,19 @@ final class MathGameScene: SKScene {
         progressBar.removeFromParent()
         titleLabel.removeFromParent()
         starsBadge.removeFromParent()
+
+        // Calm floating particles behind the math room.
+        SKAmbient.install(in: self, config: SKAmbient.Configuration(
+            particleCount: 24,
+            palette: [
+                SKTheme.yellow.withAlphaComponent(0.45),
+                SKTheme.pink.withAlphaComponent(0.35),
+                SKTheme.green.withAlphaComponent(0.30),
+            ],
+            backgroundGradient: [SKTheme.cream, SKTheme.blue.withAlphaComponent(0.10)],
+            driftSpeed: 5
+        ))
+
         installRoom()
         installHUD()
         loadProblem(index: 0)
@@ -268,10 +281,12 @@ final class MathGameScene: SKScene {
     private func checkAnswer() {
         attempts += 1
         if currentSum == target {
+            Feedback.shared.success()
             SpeechService.shared.playSuccessTone()
             SpeechService.shared.speak("That's right!")
             advance()
         } else {
+            Feedback.shared.tryAgain()
             SpeechService.shared.playTryAgainTone()
             SpeechService.shared.speak("Not quite. Try again.")
             flashTray()

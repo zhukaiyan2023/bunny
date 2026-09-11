@@ -127,6 +127,17 @@ final class ProgressStore {
     var totalStars: Int { stars.values.reduce(0, +) }
     var totalAttempts: Int { attempts.values.reduce(0, +) }
 
+    /// Fractional completion for a single area (0.0 … 1.0). Useful
+    /// for progress rings on the menu and parent dashboard.
+    func completionRatio(for area: LearningArea) -> Double {
+        let levels = Curriculum.levels(in: area)
+        guard !levels.isEmpty else { return 0 }
+        let done = levels.reduce(0) { acc, lvl in
+            acc + (completed.contains(lvl.id) ? 1 : 0)
+        }
+        return Double(done) / Double(levels.count)
+    }
+
     var recommendedLevel: LevelDefinition {
         if let lastPlayedLevelID,
            let last = Curriculum.levels.first(where: { $0.id == lastPlayedLevelID }) {

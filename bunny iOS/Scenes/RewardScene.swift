@@ -22,6 +22,14 @@ final class RewardScene: SKScene {
         buildStars()
         buildConfetti()
         buildActionButtons()
+
+        // Celebrate — haptics + sound. Slightly delayed so the haptic
+        // lands after the confetti burst.
+        run(.sequence([
+            SKAction.wait(forDuration: 0.15),
+            SKAction.run { Feedback.shared.celebrate() },
+        ]))
+
         SpeechService.shared.speak("You did it, " + level.title + "!")
 
         // S2 wiring: if this is the very first M01 completion, route to
