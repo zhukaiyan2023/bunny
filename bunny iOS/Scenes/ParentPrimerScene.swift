@@ -33,6 +33,18 @@ final class ParentPrimerScene: SKScene {
 
     override func didMove(to view: SKView) {
         backgroundColor = SKTheme.cream
+
+        SKAmbient.install(in: self, config: SKAmbient.Configuration(
+            particleCount: 20,
+            palette: [
+                SKTheme.yellow.withAlphaComponent(0.55),
+                SKTheme.pink.withAlphaComponent(0.45),
+                SKTheme.green.withAlphaComponent(0.35),
+            ],
+            backgroundGradient: [SKTheme.cream, SKTheme.green.withAlphaComponent(0.18)],
+            driftSpeed: 7
+        ))
+
         buildPip()
         buildTitle()
         buildCards()

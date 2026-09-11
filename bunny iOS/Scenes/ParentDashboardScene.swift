@@ -10,6 +10,17 @@ final class ParentDashboardScene: SKScene {
     override func didMove(to view: SKView) {
         backgroundColor = SKTheme.cream
         scrollNode.removeFromParent()
+
+        SKAmbient.install(in: self, config: SKAmbient.Configuration(
+            particleCount: 18,
+            palette: [
+                SKTheme.purple.withAlphaComponent(0.45),
+                SKTheme.yellow.withAlphaComponent(0.40),
+                SKTheme.blue.withAlphaComponent(0.35),
+            ],
+            driftSpeed: 6
+        ))
+
         buildBackground()
         buildHeader()
         buildStats()

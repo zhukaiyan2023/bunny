@@ -284,12 +284,41 @@ final class MathGameScene: SKScene {
             Feedback.shared.success()
             SpeechService.shared.playSuccessTone()
             SpeechService.shared.speak("That's right!")
+            burst(target: currentSum)
             advance()
         } else {
             Feedback.shared.tryAgain()
             SpeechService.shared.playTryAgainTone()
             SpeechService.shared.speak("Not quite. Try again.")
             flashTray()
+        }
+    }
+
+    /// Particle burst at the target-card position when the child
+    /// answers correctly. ~24 motes that radiate outward and fade.
+    private func burst(target: Int) {
+        guard let targetNode = room.childNode(withName: "target") else { return }
+        let palette: [UIColor] = [
+            SKTheme.yellow, SKTheme.green, SKTheme.blue, SKTheme.pink,
+        ]
+        for _ in 0..<24 {
+            let mote = SKShapeNode(circleOfRadius: CGFloat.random(in: 2...4))
+            mote.fillColor = palette.randomElement() ?? SKTheme.yellow
+            mote.strokeColor = .clear
+            mote.position = targetNode.position
+            room.addChild(mote)
+            let angle = CGFloat.random(in: 0...(2 * .pi))
+            let distance = CGFloat.random(in: 60...120)
+            let dx = cos(angle) * distance
+            let dy = sin(angle) * distance
+            mote.run(.sequence([
+                .group([
+                    SKAction.moveBy(x: dx, y: dy, duration: 0.6),
+                    SKAction.fadeOut(withDuration: 0.6),
+                    SKAction.scale(to: 0.2, duration: 0.6),
+                ]),
+                .removeFromParent(),
+            ]))
         }
     }
 

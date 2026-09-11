@@ -72,6 +72,20 @@ final class WelcomeScene: SKScene {
             SKAction.moveBy(x: 0, y: -6, duration: 1.4),
             SKAction.moveBy(x: 0, y: 6, duration: 1.4),
         ])))
+        // Simulated blink: a brief Y-scale squash every ~3.5s.
+        // The asset has no eye-frame variants, so we fake a blink by
+        // scaling Y to 0.1 for 90ms.
+        pipSprite.run(.repeatForever(.sequence([
+            SKAction.wait(forDuration: 3.4),
+            SKAction.group([
+                SKAction.scaleY(to: 0.1, duration: 0.045),
+                SKAction.scaleX(to: 1.08, duration: 0.045),
+            ]),
+            SKAction.group([
+                SKAction.scaleY(to: 1.0, duration: 0.045),
+                SKAction.scaleX(to: 1.0, duration: 0.045),
+            ]),
+        ])))
     }
 
     private func buildGreeting() {
