@@ -1,36 +1,47 @@
 import SpriteKit
 import UIKit
 
-/// Main menu. Pure SpriteKit — no SwiftUI hosts. The menu is laid out as five
-/// distinct horizontal bands so every element is fully visible and clearly
-/// separated from the others:
+/// Main menu — Pip's World hub. Three worlds (Math Kingdom, English
+/// Village, Life Skills Garden) on a soft pastel sky with floating
+/// dust motes. Each world has its own illustrated background, level
+/// count, and progress ring.
 ///
-///   band 1 (top)   — centred title + subtitle
-///   band 2 (upper) — animated mascot on the left, illustrated star tally on the right
-///   band 3 (mid)   — featured continue card with progress dots
-///   band 4 (lower) — three-up world grid
-///   band 5 (foot)  — "For Grown-Ups" pill above the home indicator
+/// Pillar 1 (Calm): pastel palette, slow drift, no flashing animations.
+/// Pillar 5 (Adult-gated): the parent area is a separate pill, never
+/// visually mixed with the kid-facing cards.
+///
+/// Storage strategy: nothing is stored as a class property. Every node
+/// is created locally in `buildXxx()`. This avoids the "SKNode already
+/// has a parent" crash that bites when `didChangeSize → didMove`
+/// re-enters the scene.
 final class MenuScene: SKScene {
+
     private var observation: NSObjectProtocol?
-    private let titleLabel = SKLabel(text: "BrightSprout", style: .title, color: SKTheme.ink)
-    private let subtitle = SKLabel(text: "A learning adventure with Pip", style: .caption, color: SKTheme.ink.withAlphaComponent(0.65))
-    private let continueCard = SKNode()
-    private let areaStack = SKNode()
-    private let mascot = SKSpriteNode(texture: SKTexture(imageNamed: "PipWorldSprite"))
-    private let starTallyContainer = SKNode()
-    private var starTallyText: SKLabel?
-    private let mascotHalo = SKShapeNode(circleOfRadius: 110)
+
+    private struct World {
+        let area: LearningArea
+        let title: String
+        let subtitle: String
+        let art: String
+        let tint: UIColor
+        let accent: UIColor
+    }
+    private let worlds: [World] = [
+        World(area: .math,       title: "Math Kingdom",
+              subtitle: "25 puzzles", art: "MathBakery",
+              tint: SKTheme.blue,    accent: SKTheme.blue.withAlphaComponent(0.18)),
+        World(area: .english,    title: "English Village",
+              subtitle: "15 scenes", art: "Bedroom",
+              tint: SKTheme.orange,  accent: SKTheme.orange.withAlphaComponent(0.18)),
+        World(area: .lifeSkills, title: "Life Skills Garden",
+              subtitle: "10 missions", art: "Kitchen",
+              tint: SKTheme.green,   accent: SKTheme.green.withAlphaComponent(0.18)),
+    ]
 
     override func didMove(to view: SKView) {
         backgroundColor = SKTheme.cream
-        titleLabel.removeFromParent()
-        subtitle.removeFromParent()
-        mascot.removeFromParent()
-        continueCard.removeFromParent()
-        areaStack.removeFromParent()
-        starTallyContainer.removeFromParent()
 
-        // Ambient: sky → cream → grass gradient with floating dust motes.
+        // Ambient: sky → cream → grass gradient.
         SKAmbient.install(in: self, config: SKAmbient.Configuration(
             particleCount: 36,
             palette: [
@@ -47,11 +58,12 @@ final class MenuScene: SKScene {
             driftSpeed: 7
         ))
 
-        buildBackground()
-        buildHeader()
-        buildContinueCard()
-        buildAreaCards()
+        buildMascot(in: view)
+        buildTitle()
+        buildWorlds()
+        buildFooter()
         buildParentButton()
+
         observation = NotificationCenter.default.addObserver(
             forName: .progressStoreDidChange, object: nil, queue: .main
         ) { [weak self] _ in self?.refreshProgress() }
@@ -63,240 +75,252 @@ final class MenuScene: SKScene {
     deinit { if let observation { NotificationCenter.default.removeObserver(observation) } }
 
     override func didChangeSize(_ oldSize: CGSize) {
+        // Per-node lifecycle: drop everything and rebuild from scratch.
         removeAllChildren()
+        SKAmbient.uninstall(from: self)
         didMove(to: SKView())
     }
 
-    // MARK: - Background
+    // MARK: - Mascot
 
-    private func buildBackground() {
-        // Soft green "lawn" stripe at the bottom so the home button doesn't
-        // sit on bare cream paper.
-        let ground = SKShapeNode(rectOf: CGSize(width: size.width + 40, height: size.height * 0.35))
-        ground.fillColor = SKTheme.green.withAlphaComponent(0.16)
-        ground.strokeColor = .clear
-        ground.position = CGPoint(x: 0, y: SKLayout.safeBottom(self) - size.height * 0.06)
-        addChild(ground)
-    }
-
-    // MARK: - Header (title + subtitle + mascot + star tally)
-
-    private func buildHeader() {
+    private func buildMascot(in view: SKView) {
         let safeTop = SKLayout.safeTop(self)
         let safeWidth = SKLayout.safeWidth(self)
+        let mascotY = safeTop - 250
+        let mascotX = -safeWidth * 0.30
 
-        // Title + subtitle centred at the top.
-        titleLabel.removeFromParent()
-        titleLabel.position = CGPoint(x: 0, y: safeTop - 50)
-        titleLabel.horizontalAlignmentMode = .center
-        titleLabel.fontSize = 34
-        titleLabel.fit(maxWidth: safeWidth * 0.92)
-        addChild(titleLabel)
+        // Shadow
+        let shadow = SKShapeNode(ellipseOf: CGSize(width: 140, height: 22))
+        shadow.fillColor = SKTheme.ink.withAlphaComponent(0.12)
+        shadow.strokeColor = .clear
+        shadow.position = CGPoint(x: mascotX, y: mascotY)
+        addChild(shadow)
 
-        subtitle.removeFromParent()
-        subtitle.position = CGPoint(x: 0, y: safeTop - 82)
-        subtitle.horizontalAlignmentMode = .center
-        subtitle.fontSize = 15
-        subtitle.fit(maxWidth: safeWidth * 0.92)
-        addChild(subtitle)
-
-        // Mascot sits on a yellow halo in the upper-left.
-        mascotHalo.removeFromParent()
-        mascotHalo.fillColor = SKTheme.yellow.withAlphaComponent(0.55)
-        mascotHalo.strokeColor = .clear
-        mascotHalo.position = CGPoint(x: -safeWidth * 0.30, y: safeTop - 200)
-        addChild(mascotHalo)
-        mascotHalo.run(.repeatForever(.sequence([
-            .scale(to: 1.06, duration: 1.4),
-            .scale(to: 1.0, duration: 1.4)
+        // Halo
+        let halo = SKShapeNode(circleOfRadius: 110)
+        halo.fillColor = SKTheme.yellow.withAlphaComponent(0.55)
+        halo.strokeColor = .clear
+        halo.position = CGPoint(x: mascotX, y: mascotY)
+        addChild(halo)
+        halo.run(.repeatForever(.sequence([
+            SKAction.scale(to: 1.05, duration: 1.6),
+            SKAction.scale(to: 1.00, duration: 1.6),
         ])))
 
-        mascot.removeFromParent()
-        let mascotHeight: CGFloat = min(SKLayout.safeHeight(self) * 0.20, 180)
-        mascot.size = CGSize(width: mascotHeight * 2 / 3, height: mascotHeight)
-        mascot.position = mascotHalo.position
-        mascot.alpha = 1.0
-        addChild(mascot)
-        mascot.run(.repeatForever(.sequence([
-            .moveBy(x: 0, y: -6, duration: 1.4),
-            .moveBy(x: 0, y: 6, duration: 1.4)
+        // Pip sprite — drops in from above on first appearance.
+        let pip = SKSpriteNode(texture: SKTexture(imageNamed: "PipWorldSprite"))
+        let h: CGFloat = min(SKLayout.safeHeight(self) * 0.22, 180)
+        pip.size = CGSize(width: h * 2 / 3, height: h)
+        pip.position = CGPoint(x: mascotX, y: mascotY)
+        pip.alpha = 1.0
+        addChild(pip)
+
+        // Run idle animations on all three.
+        pip.run(.sequence([
+            SKAction.group([
+                SKAction.moveTo(y: mascotY + 24, duration: 0.40),
+                SKAction.fadeAlpha(to: 1.0, duration: 0.30),
+            ]),
+            SKAction.moveTo(y: mascotY, duration: 0.18),
+            SKAction.repeatForever(.sequence([
+                SKAction.moveBy(x: 0, y: -6, duration: 1.4),
+                SKAction.moveBy(x: 0, y: 6, duration: 1.4),
+            ])),
+        ]))
+        halo.run(.repeatForever(.sequence([
+            SKAction.moveBy(x: -4, y: 0, duration: 2.2),
+            SKAction.moveBy(x: 4, y: 0, duration: 2.2),
         ])))
-
-        // Star tally card on the opposite side — five filled/empty star outlines
-        // arranged horizontally plus a numeric tally underneath.
-        buildStarTally(safeWidth: safeWidth, safeTop: safeTop)
+        shadow.run(.repeatForever(.sequence([
+            SKAction.scaleX(to: 1.10, duration: 1.4),
+            SKAction.scaleX(to: 0.90, duration: 1.4),
+        ])))
     }
 
-    private func buildStarTally(safeWidth: CGFloat, safeTop: CGFloat) {
-        starTallyContainer.removeFromParent()
-        starTallyContainer.removeAllChildren()
+    // MARK: - Title
 
-        let card = SKCard(width: 180, height: 96, cornerRadius: 24, fill: SKTheme.paper)
-        card.position = CGPoint(x: safeWidth * 0.30, y: safeTop - 200)
-        starTallyContainer.addChild(card)
+    private func buildTitle() {
+        let safeWidth = SKLayout.safeWidth(self)
+        let safeTop = SKLayout.safeTop(self)
 
-        // Five outline stars in a row.
-        let stars = SKHUD.makeStars(filled: 0, size: 22, spacing: 4)
-        stars.position = CGPoint(x: 0, y: 18)
-        card.addChild(stars)
+        let title = SKLabel(text: "Pip's World", style: .title, color: SKTheme.ink)
+        title.fontSize = 34
+        title.horizontalAlignmentMode = .left
+        title.verticalAlignmentMode = .center
+        title.position = CGPoint(x: safeWidth * 0.06, y: safeTop - 90)
+        addChild(title)
 
-        let tally = SKLabel(text: "0 / 150", style: .caption, color: SKTheme.ink)
-        tally.position = CGPoint(x: 0, y: -22)
-        tally.horizontalAlignmentMode = .center
-        tally.fontSize = 14
-        tally.fit(maxWidth: 140)
-        card.addChild(tally)
-        starTallyText = tally
-
-        addChild(starTallyContainer)
+        let sub = SKLabel(text: "Tap a world to begin",
+                          style: .caption,
+                          color: SKTheme.ink.withAlphaComponent(0.65))
+        sub.fontSize = 15
+        sub.horizontalAlignmentMode = .left
+        sub.verticalAlignmentMode = .center
+        sub.position = CGPoint(x: safeWidth * 0.06, y: safeTop - 122)
+        addChild(sub)
     }
 
-    // MARK: - Continue card
+    // MARK: - World cards
 
-    private func buildContinueCard() {
-        let card = SKCard(width: min(SKLayout.cardMaxWidth(self), 720), height: 168, cornerRadius: 28)
-        card.fillColor = SKTheme.yellow
-        card.strokeColor = SKTheme.orange.withAlphaComponent(0.4)
+    private func buildWorlds() {
+        let safeBottom = SKLayout.safeBottom(self)
+        let cardWidth = min(SKLayout.safeWidth(self) - 32, 640)
+        let cardHeight: CGFloat = 96
+        let spacing: CGFloat = 10
+        let stackY = safeBottom + 200
 
-        let topTag = SKLabel(text: "CONTINUE", style: .caption, color: SKTheme.orange)
-        topTag.position = CGPoint(x: -card.frame.width / 2 + 24, y: card.frame.height / 2 - 24)
-        topTag.horizontalAlignmentMode = .left
-        topTag.fontSize = 12
-        card.addChild(topTag)
+        let stack = SKNode()
+        stack.position = CGPoint(x: 0, y: stackY)
+        addChild(stack)
 
-        let label = SKLabel(text: "Pick a world to start", style: .headline, color: SKTheme.ink)
-        label.position = CGPoint(x: 0, y: 30)
-        label.horizontalAlignmentMode = .center
-        label.fit(maxWidth: card.frame.width - 40)
-        card.addChild(label)
+        for (index, world) in worlds.enumerated() {
+            let card = makeWorldCard(world: world,
+                                      width: cardWidth,
+                                      height: cardHeight)
+            card.position = CGPoint(x: 0,
+                                     y: -CGFloat(index) * (cardHeight + spacing))
+            card.userData = NSMutableDictionary()
+            card.userData?["area"] = world.area.rawValue
+            card.alpha = 0
+            stack.addChild(card)
 
-        let levelName = SKLabel(text: "Drag, listen, and play with Pip", style: .body, color: SKTheme.ink.withAlphaComponent(0.78))
-        levelName.position = CGPoint(x: 0, y: 0)
-        levelName.horizontalAlignmentMode = .center
-        levelName.fontSize = 16
-        levelName.fit(maxWidth: card.frame.width - 40)
-        card.addChild(levelName)
+            card.run(SKAction.sequence([
+                SKAction.wait(forDuration: 0.10 + Double(index) * 0.10),
+                SKAction.group([
+                    SKAction.fadeIn(withDuration: 0.35),
+                    SKAction.moveBy(x: 0, y: 10, duration: 0.35),
+                ]),
+            ]))
 
-        // Three progress dots — all unlit at the start.
-        let dotContainer = SKNode()
-        dotContainer.position = CGPoint(x: 0, y: -30)
-        for i in -1...1 {
-            let dot = SKShapeNode(circleOfRadius: 5)
-            dot.fillColor = SKTheme.ink.withAlphaComponent(i == 0 ? 0.65 : 0.25)
-            dot.strokeColor = .clear
-            dot.position = CGPoint(x: CGFloat(i) * 16, y: 0)
-            dotContainer.addChild(dot)
+            let tap = UITapGestureRecognizer(target: self,
+                                             action: #selector(handleAreaTap(_:)))
+            card.addGestureRecognizer(tap)
         }
-        card.addChild(dotContainer)
-
-        let button = SKButton(title: "Go", style: .primary(color: SKTheme.orange), action: { [weak self] in
-            let level = ProgressStore.shared.recommendedLevel
-            if level.area == .english {
-                SceneRouter.shared.goMap(area: .english)
-            } else {
-                SceneRouter.shared.goMap(area: level.area)
-            }
-            _ = self
-        })
-        button.setSize(width: 220, height: 56)
-        button.position = CGPoint(x: 0, y: -62)
-        card.addChild(button)
-
-        continueCard.removeFromParent()
-        continueCard.removeAllChildren()
-        continueCard.addChild(card)
-        // Sit the card just below the mascot band, above the area grid.
-        continueCard.position = CGPoint(x: 0, y: SKLayout.safeTop(self) - 360)
-        addChild(continueCard)
     }
 
-    // MARK: - Area grid
+    private func makeWorldCard(world: World, width: CGFloat, height: CGFloat) -> SKNode {
+        let card = SKShapeNode(rectOf: CGSize(width: width, height: height),
+                                cornerRadius: 28)
+        card.fillColor = SKTheme.paper
+        card.strokeColor = world.tint.withAlphaComponent(0.55)
+        card.lineWidth = 2
 
-    private func buildAreaCards() {
-        areaStack.removeFromParent()
-        areaStack.removeAllChildren()
-        let columns: CGFloat = 3
-        let spacing: CGFloat = 14
-        let cardWidth = (min(SKLayout.cardMaxWidth(self), 720) - (columns - 1) * spacing) / columns
-        let cardHeight: CGFloat = min(180, SKLayout.safeHeight(self) * 0.22)
-        let totalWidth = columns * cardWidth + (columns - 1) * spacing
-        let startX = -totalWidth / 2 + cardWidth / 2
-        let areas: [LearningArea] = [.english, .math, .lifeSkills]
-        for (index, area) in areas.enumerated() {
-            let card = makeAreaCard(area: area, width: cardWidth, height: cardHeight)
-            card.position = CGPoint(x: startX + CGFloat(index) * (cardWidth + spacing), y: 0)
-            areaStack.addChild(card)
-        }
-        // Sit the area grid above the parent button with breathing room.
-        let bottomAnchor = SKLayout.safeBottom(self) + 96 + cardHeight / 2 + 12
-        areaStack.position = CGPoint(x: 0, y: bottomAnchor)
-        addChild(areaStack)
-    }
+        // Left accent strip.
+        let strip = SKShapeNode(rectOf: CGSize(width: 14, height: height - 24),
+                                 cornerRadius: 7)
+        strip.fillColor = world.tint
+        strip.strokeColor = .clear
+        strip.position = CGPoint(x: -width / 2 + 20, y: 0)
+        card.addChild(strip)
 
-    private func makeAreaCard(area: LearningArea, width: CGFloat, height: CGFloat) -> SKNode {
-        let card = SKCard(width: width, height: height, cornerRadius: 22)
-        let icon = SKShapeNode(rectOf: CGSize(width: width - 24, height: height * 0.42), cornerRadius: 16)
-        icon.fillColor = SKTheme.color(for: area)
-        icon.strokeColor = .clear
-        icon.position = CGPoint(x: 0, y: height * 0.10)
-        card.addChild(icon)
-        let glyph = SKLabelNode(text: area == .english ? "🏠" : area == .math ? "🔢" : "🌳")
-        glyph.fontSize = min(40, height * 0.26)
-        glyph.fontName = "AvenirNext-Heavy"
-        glyph.position = CGPoint(x: 0, y: height * 0.10)
-        card.addChild(glyph)
+        // Round illustration disc.
+        let disc = SKShapeNode(circleOfRadius: 50)
+        disc.fillColor = world.accent
+        disc.strokeColor = world.tint.withAlphaComponent(0.5)
+        disc.lineWidth = 2
+        disc.position = CGPoint(x: -width / 2 + 100, y: 0)
+        card.addChild(disc)
 
-        let label = SKLabel(text: area.rawValue, style: .body, color: SKTheme.ink)
-        label.fontSize = 18
-        label.position = CGPoint(x: 0, y: -height * 0.26)
-        card.addChild(label)
-        let subtitle: String = {
-            switch area {
-            case .english: return "15 scenes"
-            case .math: return "25 puzzles"
-            case .lifeSkills: return "10 missions"
-            }
-        }()
-        let sub = SKLabel(text: subtitle, style: .caption, color: SKTheme.ink.withAlphaComponent(0.6))
-        sub.position = CGPoint(x: 0, y: -height * 0.42)
-        sub.fit(maxWidth: width - 16)
+        // Hero illustration.
+        let art = SKTexture(imageNamed: world.art)
+        let pic = SKSpriteNode(texture: art)
+        pic.size = CGSize(width: 80, height: 80)
+        pic.position = disc.position
+        card.addChild(pic)
+
+        // World title.
+        let title = SKLabelNode(text: world.title)
+        title.fontName = "AvenirNext-Heavy"
+        title.fontSize = 26
+        title.fontColor = SKTheme.ink
+        title.horizontalAlignmentMode = .left
+        title.verticalAlignmentMode = .center
+        title.position = CGPoint(x: -width / 2 + 180, y: 22)
+        card.addChild(title)
+
+        // World subtitle.
+        let sub = SKLabelNode(text: world.subtitle)
+        sub.fontName = "AvenirNext-Medium"
+        sub.fontSize = 15
+        sub.fontColor = SKTheme.ink.withAlphaComponent(0.6)
+        sub.horizontalAlignmentMode = .left
+        sub.verticalAlignmentMode = .center
+        sub.position = CGPoint(x: -width / 2 + 180, y: -8)
         card.addChild(sub)
 
-        // Subtle hover-ready breathing animation so each card feels alive.
-        let delay = TimeInterval(index(for: area)) * 0.15
+        // Progress ring.
+        let progress = ProgressStore.shared.completionRatio(for: world.area)
+        let ring = ProgressRing(radius: 28, lineWidth: 6,
+                                trackColor: SKTheme.ink.withAlphaComponent(0.10),
+                                fillColor: world.tint)
+        ring.position = CGPoint(x: width / 2 - 50, y: 0)
+        ring.setProgress(CGFloat(progress))
+        card.addChild(ring)
+
+        // Subtle breathing pulse so the cards feel alive.
         card.run(.repeatForever(.sequence([
-            .wait(forDuration: delay),
-            .scale(to: 1.02, duration: 1.6),
-            .scale(to: 1.0, duration: 1.6)
+            SKAction.scale(to: 1.012, duration: 1.8),
+            SKAction.scale(to: 1.000, duration: 1.8),
         ])))
 
-        let tap = UITapGestureRecognizer(target: self, action: #selector(handleAreaTap(_:)))
-        card.addGestureRecognizer(tap)
-        card.userData = NSMutableDictionary()
-        card.userData?["area"] = area.rawValue
         return card
     }
 
-    private func index(for area: LearningArea) -> Int {
-        switch area {
-        case .english: return 0
-        case .math: return 1
-        case .lifeSkills: return 2
-        }
-    }
+    // MARK: - Footer
 
-    // MARK: - Parent button
+    private func buildFooter() {
+        let safeWidth = SKLayout.safeWidth(self)
+        let safeBottom = SKLayout.safeBottom(self)
+
+        // Star tally card (left).
+        let starCard = SKCard(width: 220, height: 64, cornerRadius: 28,
+                                fill: SKTheme.paper)
+        starCard.position = CGPoint(x: -safeWidth * 0.30,
+                                    y: safeBottom + 56)
+        addChild(starCard)
+
+        let stars = SKHUD.makeStars(filled: 0, size: 18, spacing: 4)
+        stars.position = CGPoint(x: -50, y: 6)
+        starCard.addChild(stars)
+
+        let tally = SKLabel(text: "0 / 150", style: .caption,
+                            color: SKTheme.ink.withAlphaComponent(0.75))
+        tally.fontSize = 13
+        tally.position = CGPoint(x: 0, y: -14)
+        tally.horizontalAlignmentMode = .center
+        starCard.addChild(tally)
+        starTallyText = tally
+    }
 
     private func buildParentButton() {
-        let card = SKCard(width: 260, height: 64, cornerRadius: 28, fill: SKTheme.paper)
-        card.position = CGPoint(x: 0, y: SKLayout.safeBottom(self) + 56)
-        addChild(card)
-        let label = SKLabel(text: "For Grown-Ups", style: .button, color: SKTheme.purple)
-        label.position = CGPoint(x: 0, y: 0)
-        card.addChild(label)
-        let tap = UITapGestureRecognizer(target: self, action: #selector(handleParent))
-        card.addGestureRecognizer(tap)
+        let safeWidth = SKLayout.safeWidth(self)
+        let safeBottom = SKLayout.safeBottom(self)
+
+        let pill = SKShapeNode(rectOf: CGSize(width: 260, height: 64),
+                                cornerRadius: 28)
+        pill.fillColor = SKTheme.purple.withAlphaComponent(0.85)
+        pill.strokeColor = .clear
+        pill.lineWidth = 0
+        pill.position = CGPoint(x: safeWidth * 0.30, y: safeBottom + 56)
+        addChild(pill)
+
+        let label = SKLabelNode(text: "For Grown-Ups")
+        label.fontName = "AvenirNext-DemiBold"
+        label.fontSize = 18
+        label.fontColor = .white
+        label.verticalAlignmentMode = .center
+        label.horizontalAlignmentMode = .center
+        label.position = .zero
+        pill.addChild(label)
+
+        let tap = UITapGestureRecognizer(target: self,
+                                         action: #selector(handleParent))
+        pill.addGestureRecognizer(tap)
     }
+
+    // MARK: - State holder for tally text update
+
+    private var starTallyText: SKLabel?
 
     // MARK: - Actions
 
@@ -304,10 +328,12 @@ final class MenuScene: SKScene {
         guard let node = recognizer.view as? SKNode,
               let raw = node.userData?["area"] as? String,
               let area = LearningArea(rawValue: raw) else { return }
+        Feedback.shared.tap()
         SceneRouter.shared.goMap(area: area)
     }
 
     @objc private func handleParent() {
+        Feedback.shared.tap()
         SceneRouter.shared.goParentGate()
     }
 
