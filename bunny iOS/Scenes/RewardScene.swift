@@ -23,6 +23,17 @@ final class RewardScene: SKScene {
         buildConfetti()
         buildActionButtons()
         SpeechService.shared.speak("You did it, " + level.title + "!")
+
+        // S2 wiring: if this is the very first M01 completion, route to
+        // the parent primer after the celebration so the parent gets a
+        // one-time primer on the parent area + TTS + session cap.
+        if level.id == "M01",
+           ProgressStore.shared.attempts["M01"] == 1 {
+            run(SKAction.sequence([
+                SKAction.wait(forDuration: 2.6),
+                SKAction.run { SceneRouter.shared.goParentPrimer() },
+            ]))
+        }
     }
 
     override func didChangeSize(_ oldSize: CGSize) {

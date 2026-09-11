@@ -237,6 +237,46 @@ func progressStoreTests(into runner: TestRunner) {
         return XCTestCase.XCTAssertTrue(!reloaded.onboardingComplete,
                                          "reset must persist: reloaded store should be fresh")
     }
+
+    // S2 wiring — supports GameViewController / RewardScene routing logic
+
+    runner.add("firstM01Completion_attemptsIsOne") {
+        let store = isolatedStore()
+        guard let m01 = Curriculum.levels.first(where: { $0.id == "M01" }) else {
+            return .fail("M01 must exist in the curriculum")
+        }
+        store.complete(m01, stars: 3)
+        return XCTestCase.XCTAssertEqual(store.attempts["M01"] ?? 0, 1,
+                                          "first M01 completion should set attempts[M01]=1")
+    }
+
+    runner.add("secondM01Completion_attemptsIsTwo") {
+        let store = isolatedStore()
+        guard let m01 = Curriculum.levels.first(where: { $0.id == "M01" }) else {
+            return .fail("M01 must exist")
+        }
+        store.complete(m01, stars: 3)
+        store.complete(m01, stars: 3)
+        return XCTestCase.XCTAssertEqual(store.attempts["M01"] ?? 0, 2,
+                                          "second M01 completion should set attempts[M01]=2")
+    }
+
+    runner.add("freshStore_drivesInitialWelcome") {
+        // Models the GameViewController.viewDidLoad routing decision:
+        // a fresh store (no completions) means onboarding is not complete,
+        // so initial route should be .welcome.
+        let store = isolatedStore()
+        return XCTestCase.XCTAssertTrue(!store.onboardingComplete,
+                                         "fresh store should drive .welcome as initial route")
+    }
+
+    runner.add("completedStore_drivesInitialMenu") {
+        // Models the inverse: any completion → initial route .menu.
+        let store = isolatedStore()
+        store.complete(Curriculum.fallback[0], stars: 3)
+        return XCTestCase.XCTAssertTrue(store.onboardingComplete,
+                                         "completed store should drive .menu as initial route")
+    }
 }
 
 /// Returns a fresh ProgressStore backed by a one-shot isolated UserDefaults

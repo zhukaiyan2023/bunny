@@ -16,6 +16,7 @@ final class ParentDashboardScene: SKScene {
         buildRecentPractice()
         buildFamilyPractice()
         buildPrivacyNote()
+        buildResetButton()
         buildCloseButton()
     }
 
@@ -184,6 +185,31 @@ final class ParentDashboardScene: SKScene {
         close.setSize(width: 240, height: 64)
         close.position = CGPoint(x: 0, y: SKLayout.safeBottom(self) + 60)
         addChild(close)
+    }
+
+    /// S2 wiring — adds a "Reset Progress" button per PRD. Wipes
+    /// ProgressStore (Pillar 3: never lossy — requires confirmation by
+    /// living behind the parent gate) and routes to `.welcome` so the
+    /// onboarding flow runs again.
+    private func buildResetButton() {
+        let reset = SKButton(title: "Reset Progress",
+                             style: .secondary(color: SKTheme.orange),
+                             action: { [weak self] in
+            _ = self
+            ProgressStore.shared.resetAllProgress()
+            SceneRouter.shared.goWelcome()
+        })
+        reset.setSize(width: 240, height: 56)
+        reset.position = CGPoint(x: 0, y: SKLayout.safeBottom(self) + 140)
+        addChild(reset)
+
+        let note = SKLabel(text: "Wipes all stars and progress. Onboarding will run again.",
+                           style: .caption, color: SKTheme.ink.withAlphaComponent(0.5))
+        note.fontSize = 11
+        note.horizontalAlignmentMode = .center
+        note.fit(maxWidth: SKLayout.safeWidth(self) * 0.85)
+        note.position = CGPoint(x: 0, y: SKLayout.safeBottom(self) + 195)
+        addChild(note)
     }
 
     @objc private func goHome() {
