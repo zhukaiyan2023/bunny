@@ -33,6 +33,16 @@ jobs:
       - name: Run lint
         run: python3 tools/lint_forbidden_patterns.py
 
+  unit-tests:
+    name: Unit tests (ProgressStore / Curriculum / SceneRouter)
+    runs-on: macos-14   # Swift toolchain required
+    steps:
+      - uses: actions/checkout@v4
+      - name: Show Swift version
+        run: swift --version
+      - name: Run unit tests
+        run: bash tools/run_unit_tests.sh
+
   build:
     name: Build (${{ matrix.target }})
     runs-on: macos-14
