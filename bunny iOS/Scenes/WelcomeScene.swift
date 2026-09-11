@@ -109,7 +109,6 @@ final class WelcomeScene: SKScene {
         greeting.alpha = 0
         prompt.alpha = 0
         yesButton.alpha = 0
-        pipSprite.alpha = 0
         greeting.run(SKAction.sequence([
             SKAction.wait(forDuration: 0.3),
             SKAction.fadeIn(withDuration: 0.6),
@@ -123,8 +122,10 @@ final class WelcomeScene: SKScene {
             SKAction.fadeIn(withDuration: 0.4),
         ]))
         pipSprite.run(SKAction.sequence([
-            SKAction.scale(to: 0.0, duration: 0),
-            SKAction.scale(to: 1.1, duration: 0.4),
+            SKAction.group([
+                SKAction.scale(to: 1.1, duration: 0.4),
+                SKAction.fadeIn(withDuration: 0.4),
+            ]),
             SKAction.scale(to: 1.0, duration: 0.2),
         ]))
     }

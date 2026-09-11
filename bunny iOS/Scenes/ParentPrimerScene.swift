@@ -62,13 +62,21 @@ final class ParentPrimerScene: SKScene {
 
     private func buildTitle() {
         title.fontName = "AvenirNext-DemiBold"
-        title.fontSize = 24
+        title.fontSize = 22
         title.fontColor = SKTheme.ink
         title.verticalAlignmentMode = .center
-        title.horizontalAlignmentMode = .left
-        title.position = CGPoint(x: -SKLayout.safeWidth(self) * 0.10,
-                                 y: SKLayout.safeTop(self) - 80)
+        title.horizontalAlignmentMode = .center
+        title.numberOfLines = 0
         title.text = "Quick note for grown-ups"
+        title.position = CGPoint(x: 0, y: SKLayout.safeTop(self) - 110)
+        // Auto-shrink so it fits the safe width.
+        var size: CGFloat = 22
+        title.fontSize = size
+        let maxWidth = SKLayout.safeWidth(self) * 0.92
+        while title.frame.width > maxWidth && size > 16 {
+            size -= 1
+            title.fontSize = size
+        }
         addChild(title)
     }
 
@@ -80,11 +88,42 @@ final class ParentPrimerScene: SKScene {
         stack.position = CGPoint(x: 0, y: 30)
         addChild(stack)
 
-        for (i, card) in [card1, card2, card3].enumerated() {
-            card.size = CGSize(width: cardWidth, height: cardHeight)
-            card.position = CGPoint(x: 0,
-                                    y: -CGFloat(i) * (cardHeight + spacing))
-            stack.addChild(card)
+        // Recreate cards at the chosen width — SKShapeNode doesn't auto-resize
+        // its path when `.size` is set, so we replace the card contents with
+        // ones that match the actual width.
+        for (i, original) in [card1, card2, card3].enumerated() {
+            original.removeAllChildren()
+            // Rebuild the rounded rect path at the chosen width.
+            original.path = CGPath(roundedRect: CGRect(x: -cardWidth / 2,
+                                                        y: -cardHeight / 2,
+                                                        width: cardWidth,
+                                                        height: cardHeight),
+                                    cornerWidth: 18, cornerHeight: 18, transform: nil)
+            let titleLabel = SKLabelNode(text: ["Open the parent area", "Adjust the voice", "Set a daily limit"][i])
+            titleLabel.fontName = "AvenirNext-DemiBold"
+            titleLabel.fontSize = 15
+            titleLabel.fontColor = SKTheme.ink
+            titleLabel.horizontalAlignmentMode = .left
+            titleLabel.verticalAlignmentMode = .center
+            titleLabel.position = CGPoint(x: -cardWidth / 2 + 12, y: 18)
+            original.addChild(titleLabel)
+            let body = ["Tap the small 'For Grown-Ups' pill on the menu, then solve a multiplication puzzle.",
+                        "In the parent area, drag the speech slider to make Pip talk faster or slower.",
+                        "Pick how many minutes Pip plays each day — 5, 10, 15, 20 or 30."][i]
+            let bodyLabel = SKLabelNode(text: body)
+            bodyLabel.fontName = "AvenirNext-Regular"
+            bodyLabel.fontSize = 11
+            bodyLabel.fontColor = SKTheme.ink.withAlphaComponent(0.7)
+            bodyLabel.horizontalAlignmentMode = .left
+            bodyLabel.verticalAlignmentMode = .center
+            bodyLabel.numberOfLines = 0
+            bodyLabel.lineBreakMode = .byTruncatingTail
+            bodyLabel.preferredMaxLayoutWidth = cardWidth - 24
+            bodyLabel.position = CGPoint(x: -cardWidth / 2 + 12, y: -12)
+            original.addChild(bodyLabel)
+            original.position = CGPoint(x: 0,
+                                        y: -CGFloat(i) * (cardHeight + spacing))
+            stack.addChild(original)
         }
     }
 
@@ -95,21 +134,22 @@ final class ParentPrimerScene: SKScene {
         card.lineWidth = 1
         let titleLabel = SKLabelNode(text: heading)
         titleLabel.fontName = "AvenirNext-DemiBold"
-        titleLabel.fontSize = 16
+        titleLabel.fontSize = 15
         titleLabel.fontColor = SKTheme.ink
         titleLabel.horizontalAlignmentMode = .left
         titleLabel.verticalAlignmentMode = .center
-        titleLabel.position = CGPoint(x: -250, y: 18)
+        titleLabel.position = CGPoint(x: -255, y: 18)
         card.addChild(titleLabel)
         let bodyLabel = SKLabelNode(text: body)
         bodyLabel.fontName = "AvenirNext-Regular"
-        bodyLabel.fontSize = 12
+        bodyLabel.fontSize = 11
         bodyLabel.fontColor = SKTheme.ink.withAlphaComponent(0.7)
         bodyLabel.horizontalAlignmentMode = .left
         bodyLabel.verticalAlignmentMode = .center
         bodyLabel.numberOfLines = 0
-        bodyLabel.preferredMaxLayoutWidth = 500
-        bodyLabel.position = CGPoint(x: -250, y: -10)
+        bodyLabel.lineBreakMode = .byTruncatingTail
+        bodyLabel.preferredMaxLayoutWidth = 510
+        bodyLabel.position = CGPoint(x: -255, y: -12)
         card.addChild(bodyLabel)
         return card
     }
