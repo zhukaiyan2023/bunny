@@ -116,24 +116,25 @@ final class MenuScene: SKScene {
 
     private func buildHeader() {
         let safeTop = SKLayout.safeTop(self)
-        let safeWidth = SKLayout.safeWidth(self)
 
-        let title = SKLabel(text: "Pip's World",
-                            style: .title,
-                            color: SKTheme.ink)
-        title.fontSize = 30
-        title.horizontalAlignmentMode = .left
+        // Title — small, centered, never overflows.
+        let title = SKLabelNode(text: "Pip's World")
+        title.fontName = "AvenirNext-Heavy"
+        title.fontSize = 26
+        title.fontColor = SKTheme.ink
+        title.horizontalAlignmentMode = .center
         title.verticalAlignmentMode = .center
-        title.position = CGPoint(x: safeWidth * 0.05, y: safeTop - 50)
+        title.position = CGPoint(x: 0, y: safeTop - 50)
         addChild(title)
 
-        let sub = SKLabel(text: "Tap a level to play",
-                          style: .caption,
-                          color: SKTheme.ink.withAlphaComponent(0.6))
-        sub.fontSize = 14
-        sub.horizontalAlignmentMode = .left
+        // Subtitle — also centered.
+        let sub = SKLabelNode(text: "Tap a level to play")
+        sub.fontName = "AvenirNext-Medium"
+        sub.fontSize = 13
+        sub.fontColor = SKTheme.ink.withAlphaComponent(0.6)
+        sub.horizontalAlignmentMode = .center
         sub.verticalAlignmentMode = .center
-        sub.position = CGPoint(x: safeWidth * 0.05, y: safeTop - 78)
+        sub.position = CGPoint(x: 0, y: safeTop - 78)
         addChild(sub)
     }
 
@@ -149,11 +150,19 @@ final class MenuScene: SKScene {
         areaTabsParent = tabs
 
         let tabWidth: CGFloat = (safeWidth - 24) / 3
-        let tabHeight: CGFloat = 38
+        let tabHeight: CGFloat = 36
         let xs: [CGFloat] = [
             -safeWidth / 2 + 12 + tabWidth / 2,
             0,
             safeWidth / 2 - 12 - tabWidth / 2,
+        ]
+        // Short labels so the pill never wraps — caused the duplicate
+        // appearance in the previous build because the pill's height was
+        // anchored and the text overflowed visually.
+        let shortLabels: [AreaFilter: String] = [
+            .math:       "Math",
+            .english:    "English",
+            .lifeSkills: "Life Skills",
         ]
         for (i, area) in AreaFilter.allCases.enumerated() {
             let pill = SKShapeNode(rectOf: CGSize(width: tabWidth - 8, height: tabHeight),
@@ -170,9 +179,9 @@ final class MenuScene: SKScene {
             pill.userData?["area"] = area.rawValue
             tabs.addChild(pill)
 
-            let label = SKLabelNode(text: area.title)
+            let label = SKLabelNode(text: shortLabels[area]!)
             label.fontName = activeFilter == area ? "AvenirNext-Heavy" : "AvenirNext-DemiBold"
-            label.fontSize = 12
+            label.fontSize = 13
             label.fontColor = activeFilter == area ? area.tint : SKTheme.ink.withAlphaComponent(0.7)
             label.verticalAlignmentMode = .center
             label.horizontalAlignmentMode = .center
@@ -216,8 +225,9 @@ final class MenuScene: SKScene {
         let safeBottom = SKLayout.safeBottom(self)
         let safeWidth = SKLayout.safeWidth(self)
 
-        // Path bounds (vertical band).
-        let pathTop = safeTop - 180
+        // Path bounds (vertical band). Start below the tabs (which sit
+        // around safeTop - 115) and above the footer at safeBottom + 50.
+        let pathTop = safeTop - 220
         let pathBottom = safeBottom + 160
         let pathHeight = pathTop - pathBottom
         let pathMidX = 0.0
