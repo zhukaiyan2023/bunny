@@ -1,21 +1,18 @@
 import Cocoa
 import SpriteKit
 
-/// macOS host. NOTE: Although `bunny.xcodeproj` now declares the four
-/// `bunny iOS/Models`, `Scenes`, `Services`, `UI` synchronized folders
-/// as members of the macOS target (via the pbxproj surgery in
-/// `tools/pbxproj_add_ios_subfolder.py`), Xcode's Swift compile phase
-/// does NOT pull Swift files from those subfolders into the macOS
-/// build. Result: macOS today still shows the Apple-bundled
-/// `GameScene` template.
+/// macOS host. The full bunny scene graph (Models/Scenes/Services/UI) lives
+/// under `bunny iOS/` and depends on UIKit (UITouch, UITapGestureRecognizer)
+/// so it does not currently compile into this target. macOS still shows
+/// Apple's bundled `GameScene` template as a placeholder.
 ///
-/// Wiring macOS to the full bunny game requires either:
-///   1. Hand-adding PBXBuildFile entries per Swift file to the macOS
-///      target's Sources build phase via Xcode UI, or
-///   2. A build script that symlinks the iOS Swift files into
-///      `bunny macOS/` at build time.
-/// Both are documented as Sprint 3 follow-ups in
-/// `production/sprints/sprint-02.md`.
+/// Wiring macOS to the real bunny game is documented as a Sprint-3
+/// follow-up. The pbxproj would need to either:
+///   1. Add PBXBuildFile entries per Swift file to the macOS target's
+///      Sources build phase via Xcode UI, after first refactoring the
+///      scene touch handling to use platform-agnostic gestures; or
+///   2. Adopt macCatalyst, which keeps UIKit and reuses the iOS scenes
+///      directly.
 final class GameViewController: NSViewController {
 
     override func viewDidLoad() {

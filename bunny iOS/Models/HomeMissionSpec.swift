@@ -47,17 +47,67 @@ struct HomeMissionSpec: Equatable {
         case .bathTime: return bathTime
         case .bedtime: return bedtime
         case .dayAtHome: return dayAtHome
+        // Math scenes share one of four illustrated Math backdrops. Group
+        // them by setting (bakery/market/festival/space) or fall back to the
+        // generic outdoors scene for adventure / nature themes.
+        case .bakery, .measureGarden: return mathBakery
+        case .market, .fairPicnic: return mathMarket
+        case .festival, .helperFestival, .castle: return mathFestival
+        case .spaceStation, .rocket: return mathSpace
         default:
-            return HomeMissionSpec(
-                scene: scene,
-                title: "Explore",
-                room: SceneRoom(assetName: "Bedroom", ambience: "Welcome!"),
-                sequence: [],
-                items: [],
-                stepInstructions: ["Tap any object to begin."]
-            )
+            return outdoorFallback(for: scene)
         }
     }
+
+    /// Generic Math/Life Skills fallback: outdoor backdrop with no items, so
+    /// the LessonPlanScene and any other spec consumer can still preview the
+    /// scene without falling back to the English bedroom.
+    private static func outdoorFallback(for scene: SceneKind) -> HomeMissionSpec {
+        HomeMissionSpec(
+            scene: scene,
+            title: "Explore",
+            room: SceneRoom(assetName: "MathOutdoors", ambience: "An outdoor scene"),
+            sequence: [],
+            items: [],
+            stepInstructions: ["Tap any object to begin."]
+        )
+    }
+
+    private static let mathBakery = HomeMissionSpec(
+        scene: .bakery,
+        title: "Bakery Box Rescue",
+        room: SceneRoom(assetName: "MathBakery", ambience: "A friendly bakery"),
+        sequence: [],
+        items: [],
+        stepInstructions: ["Tap any object to begin."]
+    )
+
+    private static let mathMarket = HomeMissionSpec(
+        scene: .market,
+        title: "Market Math",
+        room: SceneRoom(assetName: "MathMarket", ambience: "An outdoor market"),
+        sequence: [],
+        items: [],
+        stepInstructions: ["Tap any object to begin."]
+    )
+
+    private static let mathFestival = HomeMissionSpec(
+        scene: .festival,
+        title: "Festival Fun",
+        room: SceneRoom(assetName: "MathFestival", ambience: "A bright festival"),
+        sequence: [],
+        items: [],
+        stepInstructions: ["Tap any object to begin."]
+    )
+
+    private static let mathSpace = HomeMissionSpec(
+        scene: .spaceStation,
+        title: "Space Station",
+        room: SceneRoom(assetName: "MathSpace", ambience: "A space station"),
+        sequence: [],
+        items: [],
+        stepInstructions: ["Tap any object to begin."]
+    )
 
     private static func item(_ id: String, _ image: String, _ label: String) -> MissionItem {
         MissionItem(id: id, imageName: image, label: label)

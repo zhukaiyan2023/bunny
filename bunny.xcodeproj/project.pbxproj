@@ -57,93 +57,9 @@
 			);
 			target = 3CBEC83F3051B47F00EA41A0 /* bunny macOS */;
 		};
-		A1B2C3D4E5F60000000000AB /* Exceptions for "bunny iOS/Models" folder in "bunny macOS" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-			);
-			target = 3CBEC83F3051B47F00EA41A0 /* bunny macOS */;
-		};
-		A1B2C3D4E5F60000000000AC /* Exceptions for "bunny iOS/Models" folder in "bunny tvOS" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-			);
-			target = 3CBEC82F3051B47F00EA41A0 /* bunny tvOS */;
-		};
-			803EE71FCF540D394FB7D1E6 /* Exceptions for "bunny iOS/Scenes" folder in "bunny macOS" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-			);
-			target = 3CBEC83F3051B47F00EA41A0 /* bunny macOS */;
-		};
-		E54AAB385CDE5C648C2BEE32 /* Exceptions for "bunny iOS/Scenes" folder in "bunny tvOS" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-			);
-			target = 3CBEC82F3051B47F00EA41A0 /* bunny tvOS */;
-		};
-			038DCBDEA259D5FFE3BDB826 /* Exceptions for "bunny iOS/Services" folder in "bunny macOS" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-			);
-			target = 3CBEC83F3051B47F00EA41A0 /* bunny macOS */;
-		};
-		C88000197DD3FA4A0709FDD6 /* Exceptions for "bunny iOS/Services" folder in "bunny tvOS" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-			);
-			target = 3CBEC82F3051B47F00EA41A0 /* bunny tvOS */;
-		};
-			62C24073860A61B7E3D5FA31 /* Exceptions for "bunny iOS/UI" folder in "bunny macOS" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-			);
-			target = 3CBEC83F3051B47F00EA41A0 /* bunny macOS */;
-		};
-		19ECDD12B36A800072868911 /* Exceptions for "bunny iOS/UI" folder in "bunny tvOS" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-			);
-			target = 3CBEC82F3051B47F00EA41A0 /* bunny tvOS */;
-		};
-	/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		4E72613D6BD1D1DAABE99ED9 /* bunny iOS/UI */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				62C24073860A61B7E3D5FA31 /* Exceptions for "bunny iOS/UI" folder in "bunny macOS" target */,
-				19ECDD12B36A800072868911 /* Exceptions for "bunny iOS/UI" folder in "bunny tvOS" target */,
-			);
-			path = "bunny iOS/UI";
-			sourceTree = "<group>";
-		};
-		D1A805667D8D6FDC81D267A4 /* bunny iOS/Services */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				038DCBDEA259D5FFE3BDB826 /* Exceptions for "bunny iOS/Services" folder in "bunny macOS" target */,
-				C88000197DD3FA4A0709FDD6 /* Exceptions for "bunny iOS/Services" folder in "bunny tvOS" target */,
-			);
-			path = "bunny iOS/Services";
-			sourceTree = "<group>";
-		};
-		C96317659B0F2515442490A3 /* bunny iOS/Scenes */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				803EE71FCF540D394FB7D1E6 /* Exceptions for "bunny iOS/Scenes" folder in "bunny macOS" target */,
-				E54AAB385CDE5C648C2BEE32 /* Exceptions for "bunny iOS/Scenes" folder in "bunny tvOS" target */,
-			);
-			path = "bunny iOS/Scenes";
-			sourceTree = "<group>";
-		};
-		A1B2C3D4E5F60000000000AA /* bunny iOS/Models */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				A1B2C3D4E5F60000000000AB /* Exceptions for "bunny iOS/Models" folder in "bunny macOS" target */,
-				A1B2C3D4E5F60000000000AC /* Exceptions for "bunny iOS/Models" folder in "bunny tvOS" target */,
-			);
-			path = "bunny iOS/Models";
-			sourceTree = "<group>";
-		};
 		3CBEC8163051B47B00EA41A0 /* bunny Shared */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -173,6 +89,26 @@
 		3CBEC8413051B47F00EA41A0 /* bunny macOS */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = "bunny macOS";
+			sourceTree = "<group>";
+		};
+		4E72613D6BD1D1DAABE99ED9 /* bunny iOS/UI */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "bunny iOS/UI";
+			sourceTree = "<group>";
+		};
+		A1B2C3D4E5F60000000000AA /* bunny iOS/Models */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "bunny iOS/Models";
+			sourceTree = "<group>";
+		};
+		C96317659B0F2515442490A3 /* bunny iOS/Scenes */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "bunny iOS/Scenes";
+			sourceTree = "<group>";
+		};
+		D1A805667D8D6FDC81D267A4 /* bunny iOS/Services */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "bunny iOS/Services";
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
