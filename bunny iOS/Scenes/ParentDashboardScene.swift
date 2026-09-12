@@ -150,8 +150,13 @@ final class ParentDashboardScene: SKScene {
 
     private func buildFamilyPractice() {
         let store = ProgressStore.shared
-        let y = SKLayout.safeBottom(self) + 230
-        let card = SKCard(width: SKLayout.cardMaxWidth(self), height: 92, cornerRadius: 22)
+        // Sit just below the Recent-practice section so the dashboard reads
+        // top-to-bottom: header → stats → recent → family → footer controls.
+        // Anchored from the top so it never collides with the footer block
+        // (Reset card → privacy note → Close) which is anchored from the
+        // bottom.
+        let y = SKLayout.safeTop(self) - 510
+        let card = SKCard(width: SKLayout.cardMaxWidth(self), height: 80, cornerRadius: 22)
         card.position = CGPoint(x: 0, y: y)
         addChild(card)
 
@@ -177,13 +182,14 @@ final class ParentDashboardScene: SKScene {
         card.addChild(checkbox)
     }
 
+    /// Privacy note sits between the Reset card and the Close button.
     private func buildPrivacyNote() {
         let note = SKLabel(text: "All data stays on this device. No ads. No tracking.",
                            style: .caption,
                            color: SKTheme.ink.withAlphaComponent(0.5))
         note.fontSize = 11
         note.horizontalAlignmentMode = .center
-        note.position = CGPoint(x: 0, y: SKLayout.safeBottom(self) + 130)
+        note.position = CGPoint(x: 0, y: SKLayout.safeBottom(self) + 55)
         note.fit(maxWidth: SKLayout.safeWidth(self) * 0.9)
         addChild(note)
     }
@@ -193,8 +199,8 @@ final class ParentDashboardScene: SKScene {
             _ = self
             SceneRouter.shared.goHome()
         })
-        close.setSize(width: 240, height: 64)
-        close.position = CGPoint(x: 0, y: SKLayout.safeBottom(self) + 60)
+        close.setSize(width: 220, height: 56)
+        close.position = CGPoint(x: 0, y: SKLayout.safeBottom(self) + 18)
         addChild(close)
     }
 
@@ -202,7 +208,16 @@ final class ParentDashboardScene: SKScene {
     /// ProgressStore (Pillar 3: never lossy — requires confirmation by
     /// living behind the parent gate) and routes to `.welcome` so the
     /// onboarding flow runs again.
+    ///
+    /// The button sits inside an SKCard so its explanatory caption stays
+    /// grouped with it. Anchored from `safeBottom` so the block always
+    /// clears the privacy note + Close button below it, and the Family card
+    /// (anchored from the top) above it.
     private func buildResetButton() {
+        let card = SKCard(width: SKLayout.cardMaxWidth(self), height: 100, cornerRadius: 22, fill: SKTheme.paper)
+        card.position = CGPoint(x: 0, y: SKLayout.safeBottom(self) + 165)
+        addChild(card)
+
         let reset = SKButton(title: "Reset Progress",
                              style: .secondary(color: SKTheme.orange),
                              action: { [weak self] in
@@ -210,17 +225,17 @@ final class ParentDashboardScene: SKScene {
             ProgressStore.shared.resetAllProgress()
             SceneRouter.shared.goWelcome()
         })
-        reset.setSize(width: 240, height: 56)
-        reset.position = CGPoint(x: 0, y: SKLayout.safeBottom(self) + 140)
-        addChild(reset)
+        reset.setSize(width: 260, height: 44)
+        reset.position = CGPoint(x: 0, y: 14)
+        card.addChild(reset)
 
         let note = SKLabel(text: "Wipes all stars and progress. Onboarding will run again.",
-                           style: .caption, color: SKTheme.ink.withAlphaComponent(0.5))
+                           style: .caption, color: SKTheme.ink.withAlphaComponent(0.55))
         note.fontSize = 11
         note.horizontalAlignmentMode = .center
-        note.fit(maxWidth: SKLayout.safeWidth(self) * 0.85)
-        note.position = CGPoint(x: 0, y: SKLayout.safeBottom(self) + 195)
-        addChild(note)
+        note.fit(maxWidth: card.frame.width - 32)
+        note.position = CGPoint(x: 0, y: -26)
+        card.addChild(note)
     }
 
     @objc private func goHome() {

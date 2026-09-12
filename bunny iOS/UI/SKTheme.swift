@@ -64,6 +64,10 @@ final class SKLabel: SKNode {
         get { labelNode.preferredMaxLayoutWidth }
         set { labelNode.preferredMaxLayoutWidth = newValue }
     }
+    var numberOfLines: Int {
+        get { labelNode.numberOfLines }
+        set { labelNode.numberOfLines = newValue }
+    }
 
     init(text: String = "", style: Style = .body, color: UIColor = SKTheme.ink) {
         super.init()
@@ -107,7 +111,11 @@ final class SKLabel: SKNode {
         case title, headline, body, caption, button
     }
 
+    /// Constrains the label to `maxWidth` and turns on multi-line wrapping.
+    /// Callers can still override `numberOfLines` afterwards if they want a
+    /// specific line cap.
     func fit(maxWidth: CGFloat) {
         labelNode.preferredMaxLayoutWidth = maxWidth
+        if labelNode.numberOfLines == 1 { labelNode.numberOfLines = 0 }
     }
 }

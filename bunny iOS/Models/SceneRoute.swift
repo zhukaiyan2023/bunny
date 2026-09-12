@@ -11,13 +11,12 @@ final class SceneRouter {
     private init() {
         // Test hook: launch with `-route <value>` to land on a specific scene.
         // Supported: menu, achievements, parentGate, parentDashboard,
+        // welcome, parentPrimer,
         // map:english, map:math, map:lifeSkills,
         // lesson:<levelId>, scene:<levelId>, reward:<levelId>:<stars>
         let args = ProcessInfo.processInfo.arguments
-        NSLog("[bunny] launch args: \(args)")
         if let idx = args.firstIndex(of: "-route"), idx + 1 < args.count {
             let raw = args[idx + 1]
-            NSLog("[bunny] routing to: \(raw)")
             route = Self.parseRoute(raw) ?? .menu
         }
     }
@@ -58,7 +57,6 @@ final class SceneRouter {
     }
 
     func go(_ destination: Route) {
-        NSLog("[bunny] SceneRouter.go from \(route) to \(destination)")
         guard route != destination else { return }
         route = destination
         NotificationCenter.default.post(name: .sceneRouterDidChange, object: nil)

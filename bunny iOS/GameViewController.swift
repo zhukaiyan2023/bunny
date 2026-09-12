@@ -59,7 +59,6 @@ final class GameViewController: UIViewController {
             SceneRouter.shared.go(initial)
         }
 
-        NSLog("[bunny] GameViewController.viewDidLoad initial route = \(SceneRouter.shared.route)")
         present(SceneRouter.shared.route, transition: nil)
 
         observation = NotificationCenter.default.addObserver(

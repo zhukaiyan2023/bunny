@@ -74,9 +74,14 @@ final class AchievementsScene: SKScene {
         ring.lineWidth = 3
         node.addChild(ring)
 
-        let glyph = SKLabelNode(text: level.area == .english ? "🏠" : level.area == .math ? "🔢" : "🌳")
-        glyph.fontSize = size * 0.4
+        // Show the level's numeric index in the centre so badges stay
+        // distinguishable across areas (and readable in the system font).
+        // The ring colour + the area's accent already convey the area.
+        let badgeNumber = badgeIndex(for: level)
+        let glyph = SKLabelNode(text: badgeNumber)
+        glyph.fontSize = size * 0.42
         glyph.fontName = "AvenirNext-Heavy"
+        glyph.fontColor = lit ? SKTheme.color(for: level.area) : SKTheme.ink.withAlphaComponent(0.55)
         glyph.position = CGPoint(x: 0, y: 6)
         node.addChild(glyph)
 
@@ -91,6 +96,15 @@ final class AchievementsScene: SKScene {
             ])))
         }
         return node
+    }
+
+    /// 1-based position of `level` within its area, formatted for the badge.
+    private func badgeIndex(for level: LevelDefinition) -> String {
+        let siblings = Curriculum.levels(in: level.area)
+        if let i = siblings.firstIndex(where: { $0.id == level.id }) {
+            return "\(i + 1)"
+        }
+        return "•"
     }
 
     private func buildBackButton() {
