@@ -15,6 +15,7 @@ final class ImmersiveMissionScene: SKScene {
     private let effectsLayer = SKNode()
     /// The glowing target zone showing where to drag the current prop.
     private let targetLayer = SKNode()
+    private weak var dropTarget: SKShapeNode?
     /// A small in-scene story prompt drawn above the room.
     private let promptLayer = SKNode()
     /// The Pip character.
@@ -238,6 +239,7 @@ final class ImmersiveMissionScene: SKScene {
         target.zPosition = 0
         target.name = "target"
         targetLayer.addChild(target)
+        dropTarget = target
 
         // Soft halo behind the target.
         let halo = SKShapeNode(ellipseOf: CGSize(width: targetSize * 1.6, height: targetSize * 0.7))
@@ -431,8 +433,7 @@ final class ImmersiveMissionScene: SKScene {
 
     private func attemptPlace(itemID: String, at location: CGPoint) {
         guard let node = itemNodes[itemID] else { return }
-        let target = (targetLayer.childNode(withName: "target") as? SKShapeNode)?
-            .convert(CGPoint(x: 0, y: 0), to: self) ?? .zero
+        let target = dropTarget?.convert(CGPoint(x: 0, y: 0), to: self) ?? .zero
         let hit = hypot(target.x - location.x, target.y - location.y) < targetSize
         if hit {
             // Snap to target and play a success effect.

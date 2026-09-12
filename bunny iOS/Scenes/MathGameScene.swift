@@ -8,6 +8,8 @@ final class MathGameScene: SKScene {
     let level: LevelDefinition
     private let room = SKNode()
     private var targetNumberLabel: SKLabelNode?
+    private var answerRowNode: SKNode?
+    private var trayContainerNode: SKNode?
     private let hud = SKNode()
     private let titleLabel = SKLabel(text: "", style: .headline, color: SKTheme.ink)
     private let footer = SKLabel(text: "", style: .body, color: SKTheme.ink.withAlphaComponent(0.7))
@@ -110,11 +112,13 @@ final class MathGameScene: SKScene {
         answerRow.name = "answerRow"
         answerRow.position = CGPoint(x: 0, y: backdrop.position.y + 8)
         room.addChild(answerRow)
+        answerRowNode = answerRow
 
         let trayContainer = SKNode()
         trayContainer.name = "tray"
         trayContainer.position = CGPoint(x: 0, y: backdrop.position.y - usableHeight * 0.28)
         room.addChild(trayContainer)
+        trayContainerNode = trayContainer
     }
 
     private func installHUD() {
@@ -196,13 +200,11 @@ final class MathGameScene: SKScene {
 
         progressBar.setProgress(Double(step) / Double(problemsPerLevel), animated: true)
 
-        let answerRow = room.childNode(withName: "answerRow")
-        answerRow?.removeAllChildren()
+        answerRowNode?.removeAllChildren()
 
-        let trayContainer = room.childNode(withName: "tray")
-        trayContainer?.removeAllChildren()
+        trayContainerNode?.removeAllChildren()
 
-        guard let trayContainer else { return }
+        guard let trayContainer = trayContainerNode else { return }
         let columns = CGFloat(max(tray.count, 1))
         let tileSide: CGFloat = min(96, max(58, size.width / (columns + 2)))
         let spacing = tileSide + 18
@@ -237,7 +239,7 @@ final class MathGameScene: SKScene {
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else { return }
         let location = touch.location(in: room)
-        guard let trayNode = room.childNode(withName: "tray") else { return }
+        guard let trayNode = trayContainerNode else { return }
         for node in trayNode.children {
             if let bg = node.childNode(withName: "tileBackground"),
                bg.contains(location) {
@@ -248,7 +250,7 @@ final class MathGameScene: SKScene {
     }
 
     private func addTileToAnswer(node: SKNode) {
-        guard let answerRow = room.childNode(withName: "answerRow"),
+        guard let answerRow = answerRowNode,
               let bg = node.childNode(withName: "tileBackground") as? SKShapeNode else { return }
         let labelText = (node.children.compactMap { $0 as? SKLabelNode }.first?.text) ?? "0"
         guard let value = Int(labelText) else { return }
@@ -265,22 +267,22 @@ final class MathGameScene: SKScene {
         copy.position = CGPoint(x: startX + CGFloat(index) * spacing, y: 0)
         answerRow.addChild(copy)
 
-        if let targetNode = room.childNode(withName: "target") as? SKLabelNode {
+        if let targetNode = targetNumberLabel {
             targetNode.text = "\(max(0, target - currentSum))"
             targetNode.fontColor = (target - currentSum == 0) ? SKTheme.green : SKTheme.ink
         }
     }
 
     private func resetSelection() {
-        guard let trayNode = room.childNode(withName: "tray"),
-              let answerRow = room.childNode(withName: "answerRow") else { return }
+        guard let trayNode = trayContainerNode,
+              let answerRow = answerRowNode else { return }
         for tile in selectedTiles {
             trayNode.addChild(tile)
         }
         selectedTiles.removeAll()
         currentSum = 0
         answerRow.removeAllChildren()
-        if let targetNode = room.childNode(withName: "target") as? SKLabelNode {
+        if let targetNode = targetNumberLabel {
             targetNode.text = "\(target)"
             targetNode.fontColor = SKTheme.ink
         }
@@ -305,7 +307,7 @@ final class MathGameScene: SKScene {
     /// Particle burst at the target-card position when the child
     /// answers correctly. ~24 motes that radiate outward and fade.
     private func burst(target: Int) {
-        guard let targetNode = room.childNode(withName: "target") else { return }
+        guard let targetNode = targetNumberLabel else { return }
         let palette: [UIColor] = [
             SKTheme.yellow, SKTheme.green, SKTheme.blue, SKTheme.pink,
         ]
@@ -331,7 +333,7 @@ final class MathGameScene: SKScene {
     }
 
     private func flashTray() {
-        guard let trayNode = room.childNode(withName: "tray") else { return }
+        guard let trayNode = trayContainerNode else { return }
         trayNode.run(.sequence([
             .colorize(with: SKTheme.pink, colorBlendFactor: 0.6, duration: 0.15),
             .colorize(with: .clear, colorBlendFactor: 0, duration: 0.25)
