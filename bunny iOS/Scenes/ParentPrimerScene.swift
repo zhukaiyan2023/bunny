@@ -23,11 +23,11 @@ final class ParentPrimerScene: SKScene {
     private let card3 = ParentPrimerScene.makeCard(
         "Set a daily limit",
         "Pick how many minutes Pip plays each day — 5, 10, 15, 20 or 30.")
-    private let showMeButton = SKShapeNode(rectOf: CGSize(width: 240, height: 64),
-                                            cornerRadius: 28)
+    private let showMeButton = SKShapeNode(rectOf: CGSize(width: 180, height: 60),
+                                            cornerRadius: 26)
     private let showMeLabel = SKLabelNode(text: "Show me")
-    private let laterButton = SKShapeNode(rectOf: CGSize(width: 240, height: 64),
-                                          cornerRadius: 28)
+    private let laterButton = SKShapeNode(rectOf: CGSize(width: 180, height: 60),
+                                          cornerRadius: 26)
     private let laterLabel = SKLabelNode(text: "Later")
     private var hasNavigated = false
 
@@ -60,10 +60,12 @@ final class ParentPrimerScene: SKScene {
     // MARK: - Layout
 
     private func buildPip() {
-        let h: CGFloat = min(120, SKLayout.safeHeight(self) * 0.12)
+        // Cap Pip smaller and tuck him above the title so the centred title
+        // text never sits behind the sprite (which it did when Pip was on
+        // the left of the header row).
+        let h: CGFloat = min(90, SKLayout.safeHeight(self) * 0.09)
         pipSprite.size = CGSize(width: h * 2 / 3, height: h)
-        pipSprite.position = CGPoint(x: -SKLayout.safeWidth(self) * 0.32,
-                                      y: SKLayout.safeTop(self) - 80)
+        pipSprite.position = CGPoint(x: 0, y: SKLayout.safeTop(self) - 70)
         pipSprite.alpha = 1.0
         addChild(pipSprite)
         pipSprite.run(.repeatForever(.sequence([
@@ -80,7 +82,8 @@ final class ParentPrimerScene: SKScene {
         title.horizontalAlignmentMode = .center
         title.numberOfLines = 0
         title.text = "Quick note for grown-ups"
-        title.position = CGPoint(x: 0, y: SKLayout.safeTop(self) - 110)
+        // Sit safely below Pip's bottom edge so they never overlap.
+        title.position = CGPoint(x: 0, y: SKLayout.safeTop(self) - 150)
         // Auto-shrink so it fits the safe width.
         var size: CGFloat = 22
         title.fontSize = size
@@ -167,11 +170,19 @@ final class ParentPrimerScene: SKScene {
     }
 
     private func buildButtons() {
+        // Compute symmetric positions from the safe width so neither button
+        // clips off either edge. With safeWidth ≈ 393 on iPhone 17 Pro and
+        // 180pt buttons, ±100 leaves a 20pt gap in the middle and ≥10pt of
+        // breathing room to either edge.
+        let safeWidth = SKLayout.safeWidth(self)
+        let buttonWidth: CGFloat = 180
+        let xOffset = min(100, safeWidth * 0.25)
+        let yOffset = SKLayout.safeBottom(self) + 130
+
         showMeButton.fillColor = SKTheme.blue
         showMeButton.strokeColor = .clear
         showMeButton.lineWidth = 0
-        showMeButton.position = CGPoint(x: -140,
-                                       y: SKLayout.safeBottom(self) + 130)
+        showMeButton.position = CGPoint(x: -xOffset, y: yOffset)
         addChild(showMeButton)
 
         showMeLabel.fontName = "AvenirNext-DemiBold"
@@ -188,8 +199,7 @@ final class ParentPrimerScene: SKScene {
         laterButton.fillColor = SKTheme.paper
         laterButton.strokeColor = SKTheme.ink.withAlphaComponent(0.25)
         laterButton.lineWidth = 1.5
-        laterButton.position = CGPoint(x: 140,
-                                      y: SKLayout.safeBottom(self) + 130)
+        laterButton.position = CGPoint(x: xOffset, y: yOffset)
         addChild(laterButton)
 
         laterLabel.fontName = "AvenirNext-DemiBold"

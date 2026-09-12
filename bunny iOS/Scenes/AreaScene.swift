@@ -70,14 +70,17 @@ final class AreaScene: SKScene {
         addChild(card)
 
         let title = SKLabel(text: "Up Next", style: .caption, color: SKTheme.ink.withAlphaComponent(0.6))
-        title.position = CGPoint(x: 0, y: 82)
+        title.position = CGPoint(x: 0, y: 92)
         card.addChild(title)
         let levelName = SKLabel(text: target.title, style: .headline, color: SKTheme.ink)
-        levelName.position = CGPoint(x: 0, y: 32)
+        levelName.position = CGPoint(x: 0, y: 42)
         levelName.fit(maxWidth: card.frame.width - 40)
         card.addChild(levelName)
         let detail = SKLabel(text: target.instruction, style: .body, color: SKTheme.ink.withAlphaComponent(0.7))
-        detail.position = CGPoint(x: 0, y: -18)
+        // Anchor below the (possibly 2-line) level name with a fixed gap so
+        // longer titles like "Rainbow Room Rescue" don't collide with the
+        // description underneath.
+        detail.position = CGPoint(x: 0, y: -22)
         detail.fit(maxWidth: card.frame.width - 60)
         card.addChild(detail)
 
@@ -85,7 +88,7 @@ final class AreaScene: SKScene {
             SceneRouter.shared.goScene(level: target)
         })
         button.setSize(width: 220, height: 60)
-        button.position = CGPoint(x: 0, y: -80)
+        button.position = CGPoint(x: 0, y: -82)
         card.addChild(button)
     }
 

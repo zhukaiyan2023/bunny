@@ -227,7 +227,10 @@ final class MenuScene: SKScene {
 
         // Path bounds (vertical band). Start below the tabs (which sit
         // around safeTop - 115) and above the footer at safeBottom + 50.
-        let pathTop = safeTop - 220
+        // The first level node's avatar halo sits ~102pt above the path
+        // top — push the path down so the halo never bleeds into the tab
+        // row above.
+        let pathTop = safeTop - 290
         let pathBottom = safeBottom + 160
         let pathHeight = pathTop - pathBottom
         let pathMidX = 0.0

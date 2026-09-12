@@ -30,10 +30,16 @@ final class SceneRouter {
         if raw == "parentPrimer" { return .parentPrimer }
         if raw.hasPrefix("map:") {
             let area = String(raw.dropFirst(4))
-            // Accept both PascalCase ("Math") and lower-case ("math") inputs.
-            let candidates = [area, area.capitalized, area.uppercased()]
-            for c in candidates {
-                if let a = LearningArea(rawValue: c) { return .map(a) }
+            // Walk every LearningArea and accept the first whose rawValue
+            // matches the input case- and whitespace-insensitively. This
+            // means `map:lifeSkills`, `map:Lifeskills`, `map:LIFE SKILLS`,
+            // `map:Math`, `map:math` all route to the correct scene without
+            // the caller having to memorise rawValue formatting.
+            let needle = area.lowercased().filter { !$0.isWhitespace }
+            if let match = LearningArea.allCases.first(where: {
+                $0.rawValue.lowercased().filter { !$0.isWhitespace } == needle
+            }) {
+                return .map(match)
             }
         }
         if raw.hasPrefix("lesson:") {
