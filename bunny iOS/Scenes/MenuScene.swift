@@ -20,6 +20,7 @@ import UIKit
 final class MenuScene: SKScene {
 
     private var observation: NSObjectProtocol?
+    private var didBuildOnce = false
 
     // MARK: - State
 
@@ -63,6 +64,13 @@ final class MenuScene: SKScene {
 
     override func didMove(to view: SKView) {
         backgroundColor = SKTheme.cream
+
+        // SpriteKit re-fires didMove every time the scene becomes attached to
+        // a view (initial attach + didChangeSize-driven re-attach). Guard so
+        // we don't double-build the path / tabs / avatar and end up with two
+        // ghost paths stacked under each other.
+        guard !didBuildOnce else { return }
+        didBuildOnce = true
 
         // Sky → cream → grass gradient with floating pastel motes.
         SKAmbient.install(in: self, config: SKAmbient.Configuration(
@@ -219,6 +227,10 @@ final class MenuScene: SKScene {
     // MARK: - Path / level nodes
 
     private func rebuildPath() {
+        // Always start from a clean slate so callers from didMove, didChangeSize,
+        // and handleAreaTap don't leave stale paths from previous invocations.
+        levelNodesParent?.removeFromParent()
+        levelNodesParent = nil
         let store = ProgressStore.shared
         let levels = Curriculum.levels(in: filterArea)
         let safeTop = SKLayout.safeTop(self)
@@ -282,7 +294,6 @@ final class MenuScene: SKScene {
         let path = UIBezierPath()
         let n = 40
         let dy = (top - bottom) / CGFloat(max(1, n - 1))
-        let half = width / 2
         var points: [CGPoint] = []
         for i in 0..<n {
             let t = CGFloat(i) / CGFloat(max(1, n - 1))
@@ -290,18 +301,19 @@ final class MenuScene: SKScene {
             let y = top - CGFloat(i) * dy
             points.append(CGPoint(x: x, y: y))
         }
-        path.move(to: CGPoint(x: points[0].x, y: points[0].y + half))
-        for p in points {
-            path.addLine(to: CGPoint(x: p.x, y: p.y + half))
+        // The previous ribbon was a closed U-shape stroked along both
+        // edges, which rendered as two parallel "ghost" curves flanking
+        // every bubble. Use a single open centerline instead.
+        path.move(to: points[0])
+        for p in points.dropFirst() {
+            path.addLine(to: p)
         }
-        for p in points.reversed() {
-            path.addLine(to: CGPoint(x: p.x, y: p.y - half))
-        }
-        path.close()
         let shape = SKShapeNode(path: path.cgPath, centered: false)
-        shape.fillColor = tint.withAlphaComponent(0.10)
-        shape.strokeColor = tint.withAlphaComponent(0.35)
-        shape.lineWidth = 1.5
+        shape.fillColor = .clear
+        shape.strokeColor = tint.withAlphaComponent(0.65)
+        shape.lineWidth = 3
+        shape.lineCap = .round
+        shape.lineJoin = .round
         return shape
     }
 
@@ -335,20 +347,26 @@ final class MenuScene: SKScene {
         let radius: CGFloat = isCurrent ? 26 : 22
         let circle = SKShapeNode(circleOfRadius: radius)
         if isLocked {
-            circle.fillColor = SKTheme.ink.withAlphaComponent(0.08)
-            circle.strokeColor = SKTheme.ink.withAlphaComponent(0.18)
+            // Locked levels read as "not yet". A thin outline with no fill
+            // is the cleanest read — the previous fill+stroke combo produced
+            // a faint "ghost" outline around each bubble that made the path
+            // look double-drawn.
+            circle.fillColor = .clear
+            circle.strokeColor = SKTheme.ink.withAlphaComponent(0.45)
+            circle.lineWidth = 2
         } else if isCompleted {
             circle.fillColor = SKTheme.yellow
             circle.strokeColor = SKTheme.orange
+            circle.lineWidth = 3
         } else {
             // Current
             circle.fillColor = tint
             circle.strokeColor = tint
+            circle.lineWidth = 3
         }
-        circle.lineWidth = 3
         node = circle
         node.position = position
-        node.alpha = isLocked ? 0.55 : 1.0
+        node.alpha = isLocked ? 0.85 : 1.0
 
         if !isLocked {
             let num = SKLabelNode(text: level.id.replacingOccurrences(of: "L", with: "")
@@ -382,14 +400,6 @@ final class MenuScene: SKScene {
                 SKAction.scale(to: 1.00, duration: 0.9),
             ])))
         }
-
-        // Subtle shadow underneath the node for depth.
-        let shadow = SKShapeNode(circleOfRadius: radius)
-        shadow.fillColor = SKTheme.ink.withAlphaComponent(0.10)
-        shadow.strokeColor = .clear
-        shadow.position = CGPoint(x: 0, y: -2)
-        shadow.zPosition = -1
-        node.addChild(shadow)
 
         return node
     }
