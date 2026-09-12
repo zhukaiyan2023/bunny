@@ -7,6 +7,7 @@ import UIKit
 final class MathGameScene: SKScene {
     let level: LevelDefinition
     private let room = SKNode()
+    private var targetNumberLabel: SKLabelNode?
     private let hud = SKNode()
     private let titleLabel = SKLabel(text: "", style: .headline, color: SKTheme.ink)
     private let footer = SKLabel(text: "", style: .body, color: SKTheme.ink.withAlphaComponent(0.7))
@@ -91,6 +92,7 @@ final class MathGameScene: SKScene {
         let targetCard = SKCard(width: min(SKLayout.cardMaxWidth(self), 320), height: 150, cornerRadius: 30)
         targetCard.position = CGPoint(x: 0, y: backdrop.position.y + usableHeight * 0.32)
         targetCard.fillColor = SKTheme.paper
+        targetCard.name = "targetCard"
         room.addChild(targetCard)
         let targetTitle = SKLabel(text: "Make", style: .caption, color: SKTheme.ink.withAlphaComponent(0.65))
         targetTitle.position = CGPoint(x: 0, y: 38)
@@ -102,6 +104,7 @@ final class MathGameScene: SKScene {
         targetNumber.position = CGPoint(x: 0, y: -14)
         targetNumber.name = "target"
         targetCard.addChild(targetNumber)
+        targetNumberLabel = targetNumber
 
         let answerRow = SKNode()
         answerRow.name = "answerRow"
@@ -183,9 +186,14 @@ final class MathGameScene: SKScene {
         currentSum = 0
         attempts = 0
 
-        if let targetNode = room.childNode(withName: "target") as? SKLabelNode {
-            targetNode.text = "\(target)"
-        }
+        // Update the target number directly via the cached reference rather
+        // than walking the scene tree with childNode(withName:). Earlier
+        // builds did the walk and SpriteKit returned nil even though the
+        // node was clearly in the tree (the recursive-enumerate log showed
+        // it as the last node), so the player always saw "?" instead of
+        // the actual target.
+        targetNumberLabel?.text = "\(target)"
+
         progressBar.setProgress(Double(step) / Double(problemsPerLevel), animated: true)
 
         let answerRow = room.childNode(withName: "answerRow")
