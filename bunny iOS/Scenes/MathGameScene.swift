@@ -45,6 +45,7 @@ final class MathGameScene: SKScene {
     }
 
     override func didMove(to view: SKView) {
+        removeAllChildren()
         backgroundColor = SKTheme.cream
         hud.removeFromParent()
         footer.removeFromParent()
@@ -85,16 +86,53 @@ final class MathGameScene: SKScene {
         let topReserve = SKLayout.safeInsets(in: self).top + 150
         let bottomReserve = SKLayout.safeInsets(in: self).bottom + 110
         let usableHeight = max(280, size.height - topReserve - bottomReserve)
-        let backdrop = SKShapeNode(rectOf: CGSize(width: size.width + 20, height: usableHeight))
-        backdrop.fillColor = SKTheme.blue.withAlphaComponent(0.10)
-        backdrop.strokeColor = .clear
-        backdrop.position = CGPoint(x: 0, y: bottomReserve + usableHeight / 2 - size.height / 2)
-        room.addChild(backdrop)
+        let roomY = bottomReserve + usableHeight / 2 - size.height / 2
+
+        // Immersive backdrop: pick a Math scene asset that fits the level's
+        // SceneKind. Reuses the same image names HomeMissionSpec.spec(for:)
+        // maps to (bakery / market / festival / space / outdoors fallback).
+        // Sits at zPosition 0 inside `room` so the target card and answer
+        // row appear on top of it.
+        let backdropImage = MathGameScene.backdropImage(for: level.scene)
+        let backdropTexture = SKTexture(imageNamed: backdropImage)
+        // SKTexture.init never returns nil on iOS, but the underlying image
+        // may be missing for a level whose image wasn't bundled. Texture size
+        // is the cheapest signal: an empty texture has zero width.
+        let textureSize = backdropTexture.size()
+        if textureSize.width > 0 && textureSize.height > 0 {
+            let backdrop = SKSpriteNode(texture: backdropTexture)
+            backdrop.name = "backdrop"
+            let cover = max(size.width / max(1, textureSize.width),
+                            usableHeight / max(1, textureSize.height))
+            backdrop.size = CGSize(width: textureSize.width * cover,
+                                   height: textureSize.height * cover)
+            backdrop.position = CGPoint(x: 0, y: roomY)
+            backdrop.zPosition = 0
+            room.addChild(backdrop)
+
+            // Tinted overlay so the target card / answer row / tray remain
+            // readable regardless of which backdrop is loaded.
+            let overlay = SKShapeNode(rectOf: CGSize(width: size.width + 20,
+                                                     height: usableHeight))
+            overlay.fillColor = SKTheme.cream.withAlphaComponent(0.18)
+            overlay.strokeColor = .clear
+            overlay.position = CGPoint(x: 0, y: roomY)
+            overlay.zPosition = 1
+            room.addChild(overlay)
+        } else {
+            // Fallback to the flat coloured band if no image is bundled.
+            let backdrop = SKShapeNode(rectOf: CGSize(width: size.width + 20, height: usableHeight))
+            backdrop.fillColor = SKTheme.blue.withAlphaComponent(0.10)
+            backdrop.strokeColor = .clear
+            backdrop.position = CGPoint(x: 0, y: roomY)
+            room.addChild(backdrop)
+        }
 
         let targetCard = SKCard(width: min(SKLayout.cardMaxWidth(self), 320), height: 150, cornerRadius: 30)
-        targetCard.position = CGPoint(x: 0, y: backdrop.position.y + usableHeight * 0.32)
+        targetCard.position = CGPoint(x: 0, y: roomY + usableHeight * 0.32)
         targetCard.fillColor = SKTheme.paper
         targetCard.name = "targetCard"
+        targetCard.zPosition = 5
         room.addChild(targetCard)
         let targetTitle = SKLabel(text: "Make", style: .caption, color: SKTheme.ink.withAlphaComponent(0.65))
         targetTitle.position = CGPoint(x: 0, y: 38)
@@ -110,13 +148,16 @@ final class MathGameScene: SKScene {
 
         let answerRow = SKNode()
         answerRow.name = "answerRow"
-        answerRow.position = CGPoint(x: 0, y: backdrop.position.y + 8)
+        answerRow.position = CGPoint(x: 0, y: roomY + 8)
         room.addChild(answerRow)
         answerRowNode = answerRow
 
         let trayContainer = SKNode()
         trayContainer.name = "tray"
-        trayContainer.position = CGPoint(x: 0, y: backdrop.position.y - usableHeight * 0.28)
+        // Pull the tray well above the bottom edge so the number tiles
+        // aren't clipped behind the footer / safe-area or hidden by the
+        // backdrop image's lower band.
+        trayContainer.position = CGPoint(x: 0, y: roomY + 30)
         room.addChild(trayContainer)
         trayContainerNode = trayContainer
     }
@@ -150,33 +191,44 @@ final class MathGameScene: SKScene {
         hud.addChild(starsBadge)
 
         // Bottom footer with instruction on top, two action buttons below.
-        let bottom = SKCard(width: SKLayout.cardMaxWidth(self), height: 96, cornerRadius: 28)
+        // Bumped to 130pt so the instruction row + a 46pt button row +
+        // 16pt breathing room on each side all fit without overlap.
+        let bottom = SKCard(width: SKLayout.cardMaxWidth(self), height: 130, cornerRadius: 28)
         bottom.position = CGPoint(x: 0, y: SKLayout.safeBottom(self) + insets.bottom + bottom.frame.height / 2)
         hud.addChild(bottom)
 
         footer.text = "Tap numbers to add them to the row."
         footer.fontSize = 14
         footer.fit(maxWidth: bottom.frame.width - 32)
-        footer.position = CGPoint(x: 0, y: 22)
+        footer.position = CGPoint(x: 0, y: 38)
         footer.horizontalAlignmentMode = .center
         bottom.addChild(footer)
 
         let buttonRow = SKNode()
-        buttonRow.position = CGPoint(x: 0, y: -22)
+        buttonRow.position = CGPoint(x: 0, y: -25)
         bottom.addChild(buttonRow)
+
+        // Reset (left) + Check (right) with explicit centering math so
+        // the two never overlap regardless of card width.
+        let resetWidth: CGFloat = 110
+        let checkWidth: CGFloat = 140
+        let gap: CGFloat = 24
+        let totalRow = resetWidth + checkWidth + gap
+        let leftX  = -totalRow / 2 + resetWidth / 2
+        let rightX = -totalRow / 2 + resetWidth + gap + checkWidth / 2
 
         let reset = SKButton(title: "Reset", style: .ghost, action: { [weak self] in
             self?.resetSelection()
         })
-        reset.setSize(width: 110, height: 46)
-        reset.position = CGPoint(x: -bottom.frame.width / 2 + 70, y: 0)
+        reset.setSize(width: resetWidth, height: 46)
+        reset.position = CGPoint(x: leftX, y: 0)
         buttonRow.addChild(reset)
 
         let check = SKButton(title: "Check", style: .primary(color: SKTheme.blue), action: { [weak self] in
             self?.checkAnswer()
         })
-        check.setSize(width: 140, height: 46)
-        check.position = CGPoint(x: bottom.frame.width / 2 - 90, y: 0)
+        check.setSize(width: checkWidth, height: 46)
+        check.position = CGPoint(x: rightX, y: 0)
         buttonRow.addChild(check)
     }
 
@@ -241,8 +293,13 @@ final class MathGameScene: SKScene {
         let location = touch.location(in: room)
         guard let trayNode = trayContainerNode else { return }
         for node in trayNode.children {
-            if let bg = node.childNode(withName: "tileBackground"),
-               bg.contains(location) {
+            // `contains` expects the point in the node's parent coordinate
+            // space. The touch is in `room` coordinates, while each tile is
+            // nested under the tray container; comparing them directly made
+            // every number tile look untappable.
+            guard let parent = node.parent else { continue }
+            let tilePoint = parent.convert(location, from: room)
+            if node.contains(tilePoint) {
                 addTileToAnswer(node: node)
                 return
             }
@@ -375,6 +432,20 @@ final class MathGameScene: SKScene {
                 tray: tray,
                 answer: [first, second]
             )
+        }
+    }
+
+    /// Picks the Math-scene backdrop image that matches the level's SceneKind,
+    /// falling back to MathOutdoors for anything not explicitly mapped. Same
+    /// bucket logic as `HomeMissionSpec.spec(for:)` so Math lessons share
+    /// visual continuity with the lesson preview.
+    private static func backdropImage(for scene: SceneKind) -> String {
+        switch scene {
+        case .bakery, .measureGarden:        return "MathBakery"
+        case .market, .fairPicnic:           return "MathMarket"
+        case .festival, .helperFestival, .castle: return "MathFestival"
+        case .spaceStation, .rocket:         return "MathSpace"
+        default:                              return "MathOutdoors"
         }
     }
 }
