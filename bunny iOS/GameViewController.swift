@@ -84,6 +84,12 @@ final class GameViewController: UIViewController {
         let scene = makeScene(for: route, size: size)
         scene.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         scene.scaleMode = .resizeFill
+
+        // Node-level UIKit gestures are attached to the shared SKView. Clear
+        // the previous scene's recognizers before installing the new scene's
+        // controls, otherwise old scenes keep receiving taps after routing.
+        host.gestureRecognizers?.forEach { host.removeGestureRecognizer($0) }
+
         if let transition {
             host.presentScene(scene, transition: transition)
         } else {
@@ -91,31 +97,12 @@ final class GameViewController: UIViewController {
         }
     }
 
-    /// The single place that decides which concrete SKScene subclass to
-    /// instantiate for a given route. Adding a new route requires adding
-    /// exactly one new `case` here.
+    /// Defers to `SceneRouter.makeScene(for:size:)` which is the single
+    /// source of truth for route → scene mapping (in
+    /// `SceneRoute+Factory.swift`). Adding a new route is one new case in
+    /// `SceneRouter.Route` plus one switch arm there. No edits to this
+    /// file are required for new routes.
     private func makeScene(for route: SceneRouter.Route, size: CGSize) -> SKScene {
-        switch route {
-        case .menu:
-            return MenuScene(size: size)
-        case .map(let area):
-            return AreaScene(size: size, area: area)
-        case .lesson(let level):
-            return LessonPlanScene(size: size, level: level)
-        case .scene(let level):
-            return GameSceneFactory.makeScene(size: size, level: level)
-        case .reward(let level, let stars):
-            return RewardScene(size: size, level: level, stars: stars)
-        case .parentGate:
-            return ParentGateScene(size: size)
-        case .parentDashboard:
-            return ParentDashboardScene(size: size)
-        case .achievements:
-            return AchievementsScene(size: size)
-        case .welcome:
-            return WelcomeScene(size: size)
-        case .parentPrimer:
-            return ParentPrimerScene(size: size)
-        }
+        SceneRouter.makeScene(for: route, size: size)
     }
 }
