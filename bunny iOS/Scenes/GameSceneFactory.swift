@@ -4,7 +4,6 @@ import UIKit
 /// Builds the correct gameplay scene for a given level definition.
 enum GameSceneFactory {
     static func makeScene(size: CGSize, level: LevelDefinition) -> SKScene {
-        let scale = max(size.width, 900) / 900
         switch level.area {
         case .english:
             return EnglishGameScene(size: size, level: level)
@@ -26,6 +25,8 @@ class GameSceneBase: SKScene {
     var topTitle: SKLabel?
 
     override func didMove(to view: SKView) {
+        backgroundLayer.removeAllChildren()
+        chrome.removeAllChildren()
         backgroundColor = SKTheme.cream
         addChild(backgroundLayer)
         addChild(chrome)

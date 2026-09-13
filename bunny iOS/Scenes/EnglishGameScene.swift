@@ -42,6 +42,7 @@ final class EnglishGameScene: SKScene {
     }
 
     override func didMove(to view: SKView) {
+        removeAllChildren()
         backgroundColor = SKTheme.cream
         // Detach any nodes that survived a previous tear-down so the scene
         // can be safely rebuilt when didMove is called twice (SpriteKit calls
@@ -249,9 +250,6 @@ final class EnglishGameScene: SKScene {
 
     private func runOpeningSequence() {
         refreshFooter()
-        let line = currentAction().accessiblePrompt == "Put it in place"
-            ? currentAction().gesturePrompt
-            : currentAction().gesturePrompt
         SpeechService.shared.speak(spec.stepInstructions[min(step, spec.stepInstructions.count - 1)])
     }
 

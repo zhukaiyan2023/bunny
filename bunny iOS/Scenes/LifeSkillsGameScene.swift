@@ -32,6 +32,7 @@ final class LifeSkillsGameScene: SKScene {
     deinit { SpeechService.shared.stopSpeech() }
 
     override func didMove(to view: SKView) {
+        removeAllChildren()
         backgroundColor = SKTheme.cream
         header.removeFromParent()
         body.removeFromParent()

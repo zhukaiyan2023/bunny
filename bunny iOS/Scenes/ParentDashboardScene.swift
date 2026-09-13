@@ -8,6 +8,7 @@ final class ParentDashboardScene: SKScene {
     private let scrollNode = SKNode()
 
     override func didMove(to view: SKView) {
+        removeAllChildren()
         backgroundColor = SKTheme.cream
         scrollNode.removeFromParent()
 

@@ -13,6 +13,44 @@ earlier pillar wins.
 
 ---
 
+## Global Tone — Immersive, Living Scenes
+
+**"The child enters a world, not a picture."**
+
+bunny's scenes should feel immersive through composition and responsive
+detail. A scene is not a single static background image: it is a layered
+environment made from a background layout plus individually authored elements
+(characters, props, foreground shapes, lighting, and ambient details). Each
+element may have its own gentle motion, and the scene should respond to the
+story's current context as it unfolds.
+
+### Direction
+
+- Build each scene as a readable spatial layout with foreground, middle
+  ground, and background relationships — not as one flat backdrop.
+- Give meaningful elements independent behavior where appropriate: Pip can
+  react, props can move, and ambient details can breathe or shift.
+- Let story and interaction state drive changes in pose, placement, emphasis,
+  lighting, and motion. The environment should visibly acknowledge what the
+  child is doing and what is happening in the story.
+- Keep all changes calm, legible, and purposeful. Motion should support the
+  child's attention and sense of presence, never compete with the task.
+- Preserve accessibility: respect Reduce Motion, keep prompts and targets
+  clear above the environment, and never rely on animation alone to convey
+  meaning.
+
+### Decision test
+
+> "If every character and prop stopped moving, would this still be only a
+> background image?" If yes → add spatial structure, authored elements, or
+> context-driven behavior that makes the scene feel alive.
+
+This is a **cross-cutting visual direction**, not a sixth priority pillar.
+When it conflicts with the pillars, the prioritized pillars win — especially
+Pillar 1 (Calm over Exciting).
+
+---
+
 ## Pillar 1 — Calm over Exciting
 
 **"Bunny should never shout."**
@@ -174,4 +212,4 @@ A pillar revision is a **major design change** and should be:
 - Reviewed by the full team
 - Communicated to anyone currently implementing against the pillar
 
-Last updated: 2026-01
+Last updated: 2026-09

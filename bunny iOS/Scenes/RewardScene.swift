@@ -17,6 +17,8 @@ final class RewardScene: SKScene {
     required init?(coder aDecoder: NSCoder) { fatalError() }
 
     override func didMove(to view: SKView) {
+        removeAllChildren()
+        removeAllActions()
         buildBackground()
         buildHeader()
         buildStars()

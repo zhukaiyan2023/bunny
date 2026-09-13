@@ -86,9 +86,18 @@ default SpriteKit template). Each platform has its own scheme and target.
 ├── bunny tvOS/                        # tvOS target (Apple TV focus-engine)
 │   ├── AppDelegate.swift
 │   ├── SceneDelegate.swift
-│   ├── GameViewController.swift
+│   ├── GameViewController.swift       # Stub: shows Apple GameScene template
 │   ├── Base.lproj/Main.storyboard
 │   └── Info.plist
+│
+├── tools/                             # Build / test helpers
+│   ├── run_unit_tests.sh               # Standalone runner for tests/unit/
+│   └── pbxproj_add_ios_subfolder.py    # Pbxproj helper (Sprint-2)
+│
+├── tests/                             # Standalone unit tests (52 cases)
+│   ├── unit/                           # CurriculumTests, ProgressStoreTests, SceneRouterTests
+│   ├── integration/                    # Reserved
+│   └── playtest/                       # Reserved
 │
 ├── design/                            # ← planning deliverables live here
 │   ├── game-concept.md

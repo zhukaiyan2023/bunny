@@ -7,6 +7,8 @@ final class AchievementsScene: SKScene {
     private let scrollNode = SKNode()
 
     override func didMove(to view: SKView) {
+        removeAllChildren()
+        scrollNode.removeAllActions()
         backgroundColor = SKTheme.cream
         scrollNode.removeFromParent()
         buildHeader()

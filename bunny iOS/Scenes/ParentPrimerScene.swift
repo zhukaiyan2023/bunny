@@ -32,6 +32,14 @@ final class ParentPrimerScene: SKScene {
     private var hasNavigated = false
 
     override func didMove(to view: SKView) {
+        removeAllChildren()
+        pipSprite.removeAllActions()
+        title.removeAllActions()
+        card1.removeAllActions()
+        card2.removeAllActions()
+        card3.removeAllActions()
+        showMeButton.removeAllActions()
+        laterButton.removeAllActions()
         backgroundColor = SKTheme.cream
 
         SKAmbient.install(in: self, config: SKAmbient.Configuration(
@@ -54,6 +62,14 @@ final class ParentPrimerScene: SKScene {
     }
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard let touch = touches.first else { return }
+        let location = touch.location(in: self)
+        // The screen remains a friendly tap-anywhere surface, but button taps
+        // must be left to their own gesture recognizers. Without this guard a
+        // Show Me tap could immediately fall through and route to Home.
+        if showMeButton.contains(location) || laterButton.contains(location) {
+            return
+        }
         routeToMenu()
     }
 
@@ -175,7 +191,6 @@ final class ParentPrimerScene: SKScene {
         // 180pt buttons, ±100 leaves a 20pt gap in the middle and ≥10pt of
         // breathing room to either edge.
         let safeWidth = SKLayout.safeWidth(self)
-        let buttonWidth: CGFloat = 180
         let xOffset = min(100, safeWidth * 0.25)
         let yOffset = SKLayout.safeBottom(self) + 130
 

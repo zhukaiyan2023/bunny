@@ -17,6 +17,7 @@ final class LessonPlanScene: SKScene {
     required init?(coder aDecoder: NSCoder) { fatalError() }
 
     override func didMove(to view: SKView) {
+        removeAllChildren()
         backgroundColor = SKTheme.cream
         gameScene.removeFromParent()
         sceneContainer.removeFromParent()

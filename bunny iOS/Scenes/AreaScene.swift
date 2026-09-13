@@ -15,6 +15,10 @@ final class AreaScene: SKScene {
     required init?(coder aDecoder: NSCoder) { fatalError() }
 
     override func didMove(to view: SKView) {
+        // SpriteKit may attach the same scene more than once while the host
+        // view settles its size. Rebuild from a clean graph so headers,
+        // labels, and gestures never stack on top of each other.
+        removeAllChildren()
         backgroundColor = SKTheme.cream
         buildBackground()
         buildHeader()

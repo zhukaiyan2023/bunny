@@ -16,6 +16,7 @@ final class ParentGateScene: SKScene {
     private let requiredHold: TimeInterval = 1.6
 
     override func didMove(to view: SKView) {
+        removeAllChildren()
         backgroundColor = SKTheme.cream
         title.removeFromParent()
         prompt.removeFromParent()
