@@ -356,7 +356,24 @@ final class MathGameScene: SKScene {
         } else {
             Feedback.shared.tryAgain()
             SpeechService.shared.playTryAgainTone()
-            SpeechService.shared.speak("Not quite. Try again.")
+            // Pillar 1 (Calm): keep the spoken message short and friendly.
+            // Pillar X (Don't trap a stuck kid): after a few misses, suggest
+            // a tip instead of just repeating the same "try again".
+            let prompt: String
+            if attempts >= 3 {
+                // problemList[step].answer is [first, second]. After 3
+                // missed attempts, suggest the actual pair so the child
+                // isn't stuck guessing.
+                let nums = problemList[step].answer
+                if nums.count == 2 {
+                    prompt = "Try \(nums[0]) + \(nums[1])."
+                } else {
+                    prompt = "Not quite. Try again."
+                }
+            } else {
+                prompt = "Not quite. Try again."
+            }
+            SpeechService.shared.speak(prompt)
             flashTray()
         }
     }
