@@ -12,7 +12,23 @@ import UIKit
 /// `design/gdd/scene-system.md`.
 final class WelcomeScene: SKScene {
     private let pipHalo = SKShapeNode(circleOfRadius: 140)
-    private let pipSprite = SKSpriteNode(texture: SKTexture(imageNamed: "PipHero"))
+    // Full-body portrait illustration so the figure fills the halo.
+    // The PNG includes a sky-blue band above Pip; the shader below keys
+    // blue out so only the rabbit is visible against the yellow halo.
+    private let pipSprite = SKSpriteNode(texture: SKTexture(imageNamed: "PipWorldSprite"))
+    private static let pipChromaKey: SKShader = SKShader(
+        source: """
+        void main() {
+            vec4 c = texture2D(u_texture, v_tex_coord);
+            // Key out the sky-blue band at the top of the asset. Anything
+            // with a strong blue component and low red gets alpha=0.
+            if (c.b > 0.55 && c.r < 0.45) {
+                c.a = 0.0;
+            }
+            gl_FragColor = c;
+        }
+        """
+    )
     private let greeting = SKLabelNode(text: "Hi! I'm Pip.\nWant to play with me?")
     private let prompt = SKLabelNode(text: "Tap anywhere to begin")
     private let yesButton = SKShapeNode(rectOf: CGSize(width: 240, height: 64),
@@ -21,6 +37,12 @@ final class WelcomeScene: SKScene {
     private var hasRouted = false
 
     override func didMove(to view: SKView) {
+        removeAllChildren()
+        pipHalo.removeAllActions()
+        pipSprite.removeAllActions()
+        greeting.removeAllActions()
+        prompt.removeAllActions()
+        yesButton.removeAllActions()
         backgroundColor = SKTheme.cream
 
         // Ambient particles for depth behind the welcome halo.
@@ -54,6 +76,13 @@ final class WelcomeScene: SKScene {
     private func buildHalo() {
         pipHalo.fillColor = SKTheme.yellow.withAlphaComponent(0.55)
         pipHalo.strokeColor = .clear
+        // Smaller halo — the original radius (140) made Pip look like a
+        // tiny portrait pasted inside an empty disc. With radius 110 the
+        // halo reads as a frame behind Pip rather than a room Pip is in.
+        let radius: CGFloat = 110
+        let path = UIBezierPath(ovalIn: CGRect(x: -radius, y: -radius,
+                                              width: radius * 2, height: radius * 2))
+        pipHalo.path = path.cgPath
         pipHalo.position = CGPoint(x: 0, y: 90)
         addChild(pipHalo)
         pipHalo.run(.repeatForever(.sequence([
@@ -63,10 +92,15 @@ final class WelcomeScene: SKScene {
     }
 
     private func buildPip() {
-        let h: CGFloat = min(220, SKLayout.safeHeight(self) * 0.22)
-        pipSprite.size = CGSize(width: h * 2 / 3, height: h)
+        // Use the full-body portrait asset (`PipWorldSprite`) so Pip fills
+        // the halo instead of looking like a tiny sticker on a big yellow
+        // disc. Sized so the figure sits roughly within the halo circle
+        // (radius 110) — width 120 keeps it centred, height 180 follows
+        // the asset's 2:3 aspect.
+        pipSprite.size = CGSize(width: 120, height: 180)
         pipSprite.position = pipHalo.position
         pipSprite.alpha = 1.0
+        pipSprite.shader = Self.pipChromaKey
         addChild(pipSprite)
         pipSprite.run(.repeatForever(.sequence([
             SKAction.moveBy(x: 0, y: -6, duration: 1.4),
